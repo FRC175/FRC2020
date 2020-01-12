@@ -13,18 +13,17 @@ import com.team175.robot.subsystems.ExampleSubsystem;
 /**
  * An example command that uses an example subsystem.
  */
-public class ExampleCommand extends CommandBase
-{
-    @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField", "FieldCanBeLocal"})
+public class ExampleCommand extends CommandBase {
+    @SuppressWarnings({ "PMD.UnusedPrivateField", "PMD.SingularField", "FieldCanBeLocal" })
     private final ExampleSubsystem subsystem;
 
     /**
      * Creates a new ExampleCommand.
      *
-     * @param subsystem The subsystem used by this command.
+     * @param subsystem
+     *         The subsystem used by this command.
      */
-    public ExampleCommand(ExampleSubsystem subsystem)
-    {
+    public ExampleCommand(ExampleSubsystem subsystem) {
         this.subsystem = subsystem;
         addRequirements(subsystem);
     }
