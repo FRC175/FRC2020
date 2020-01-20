@@ -4,8 +4,9 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team175.robot.utils.DriveHelper;
 
 /**
- * Drive represents the drivetrain of the robot. This class is packed with documentation to help understanding design
- * choices and robot programming in general.
+ * Drive represents the drivetrain of the robot. It is composed of 4 cim motors (controlled with 4 Talon SRXs) and a
+ * Pigeon gyro. This class is packed with documentation to better understand design choices and robot programming in
+ * general.
  */
 public class Drive extends SubsystemBase {
 
@@ -54,6 +55,16 @@ public class Drive extends SubsystemBase {
         }
 
         return instance;
+    }
+
+    @Override
+    public void resetSensors() {
+
+    }
+
+    @Override
+    public boolean checkIntegrity() {
+        return false;
     }
 
 }
