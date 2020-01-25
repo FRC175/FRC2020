@@ -1,7 +1,9 @@
 package com.team175.robot;
 
+import com.team175.robot.commands.ControlTurret;
 import com.team175.robot.models.AldrinXboxController;
 import com.team175.robot.subsystems.Drive;
+import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,6 +19,7 @@ public class RobotContainer {
 
     // The robot's subsystems and commands are defined here
     private final Drive drive;
+    private final Shooter shooter;
     private final AldrinXboxController controller;
 
     private Command autoCommand;
@@ -24,13 +27,15 @@ public class RobotContainer {
     private static RobotContainer instance;
 
     private static final int CONTROLLER_PORT = 0;
+    private static final double CONTROLLER_DEADBAND = 0.10;
 
     /**
      * The container for the robot.  Contains subsystems, OI devices, and commands.
      */
     private RobotContainer() {
         drive = Drive.getInstance();
-        controller = new AldrinXboxController(CONTROLLER_PORT);
+        shooter = Shooter.getInstance();
+        controller = new AldrinXboxController(CONTROLLER_PORT, CONTROLLER_DEADBAND);
 
         configureDefaultCommands();
         configureButtonBindings();
@@ -59,6 +64,9 @@ public class RobotContainer {
                         drive
                 )
         );
+
+        // Manual turret control
+        shooter.setDefaultCommand(new ControlTurret(shooter, () -> controller.getX(GenericHID.Hand.kRight)));
     }
 
     /**
