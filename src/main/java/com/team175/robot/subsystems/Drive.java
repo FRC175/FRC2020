@@ -1,6 +1,8 @@
 package com.team175.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.team175.robot.models.SimpleDoubleSolenoid;
 import com.team175.robot.utils.DriveHelper;
 
 /**
@@ -12,11 +14,14 @@ public class Drive extends SubsystemBase {
 
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
     private final DriveHelper driveHelper;
+    private final SimpleDoubleSolenoid shifter;
 
     private static final int LEFT_MASTER_PORT = 0;
     private static final int LEFT_SLAVE_PORT = 0;
     private static final int RIGHT_MASTER_PORT = 0;
     private static final int RIGHT_SLAVE_PORT = 0;
+    private static final int SHIFTER_FORWARD_CHANNEL = 0;
+    private static final int SHIFTER_REVERSE_CHANNEL = 0;
 
     /**
      * The single instance of {@link Drive} used to implement the "singleton" design pattern. A description of the
@@ -35,6 +40,11 @@ public class Drive extends SubsystemBase {
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
 
         driveHelper = new DriveHelper(leftMaster, rightMaster);
+
+        shifter = new SimpleDoubleSolenoid(SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
+
+        configTalons();
+        configTelemetry();
     }
 
     /**
@@ -57,9 +67,53 @@ public class Drive extends SubsystemBase {
         return instance;
     }
 
+    public static double random() {
+        return 0;
+    }
+
+    /**
+     * Helper method that configures the Talon SRX motor controllers.
+     */
+    private void configTalons() {
+        leftMaster.configFactoryDefault();
+
+        leftSlave.configFactoryDefault();
+
+        rightMaster.configFactoryDefault();
+
+        rightSlave.configFactoryDefault();
+    }
+
+    /**
+     * Helper method that adds all telemetry data to the telemetry Map.
+     */
+    private void configTelemetry() {
+        // telemetry.put("", null);
+    }
+
+    public void setOpenLoop(double leftDemand, double rightDemand) {
+        leftMaster.set(ControlMode.PercentOutput, leftDemand);
+        rightMaster.set(ControlMode.PercentOutput, rightDemand);
+    }
+
+    public void arcadeDrive(double throttle, double turn) {
+        driveHelper.arcadeDrive(throttle, turn);
+    }
+
+    public void cheesyDrive(double throttle, double turn, boolean isQuickTurn) {
+        driveHelper.cheesyDrive(throttle, turn, isQuickTurn, isHighGear());
+    }
+
+    public void setHighGear(boolean shift) {
+        shifter.set(shift);
+    }
+
+    public boolean isHighGear() {
+        return shifter.get();
+    }
+
     @Override
     public void resetSensors() {
-
     }
 
     @Override

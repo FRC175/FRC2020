@@ -211,8 +211,8 @@ public final class DriveHelper {
     /**
      * From Team254's Util class.
      */
-    private double limit(double v, double maxMagnitude) {
-        return Math.min(maxMagnitude, Math.max(-maxMagnitude, v));
+    private double limit(double val, double maxMagnitude) {
+        return Math.min(maxMagnitude, Math.max(-maxMagnitude, val));
     }
 
 }

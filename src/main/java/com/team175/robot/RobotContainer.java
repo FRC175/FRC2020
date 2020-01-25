@@ -1,10 +1,11 @@
 package com.team175.robot;
 
+import com.team175.robot.models.AldrinXboxController;
+import com.team175.robot.subsystems.Drive;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import com.team175.robot.commands.ExampleCommand;
-import com.team175.robot.subsystems.ExampleSubsystem;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 
 /**
  * RobotContainer is where the bulk of the robot should be declared.  Since Command-based is a "declarative" paradigm,
@@ -15,17 +16,39 @@ import com.team175.robot.subsystems.ExampleSubsystem;
 public class RobotContainer {
 
     // The robot's subsystems and commands are defined here
-    private final ExampleSubsystem exampleSubsystem = new ExampleSubsystem();
+    private final Drive drive;
+    private final AldrinXboxController controller;
 
-    private final ExampleCommand autonomousCommand = new ExampleCommand(exampleSubsystem);
+    private Command autoCommand;
 
+    private static final int CONTROLLER_PORT = 0;
 
     /**
      * The container for the robot.  Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
+        drive = Drive.getInstance();
+        controller = new AldrinXboxController(0);
+
         // Configure the button bindings
         configureButtonBindings();
+    }
+
+    private void configureDefaultCommands() {
+        // Arcade Drive
+        drive.setDefaultCommand(
+                new FunctionalCommand(
+                        () -> {},
+                        () -> drive.arcadeDrive(
+                                controller.getTriggerAxis(GenericHID.Hand.kRight)
+                                        - controller.getTriggerAxis(GenericHID.Hand.kLeft),
+                                controller.getX(GenericHID.Hand.kLeft)
+                        ),
+                        (interrupted) -> drive.setOpenLoop(0, 0),
+                        () -> true,
+                        drive
+                )
+        );
     }
 
     /**
@@ -45,7 +68,7 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
-        return autonomousCommand;
+        return autoCommand;
     }
 
 }

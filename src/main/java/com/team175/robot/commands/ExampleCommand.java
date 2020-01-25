@@ -7,7 +7,6 @@
 
 package com.team175.robot.commands;
 
-import edu.wpi.first.wpilibj2.command.CommandBase;
 import com.team175.robot.subsystems.ExampleSubsystem;
 
 /**
