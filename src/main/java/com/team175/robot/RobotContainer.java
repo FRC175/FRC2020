@@ -1,44 +1,70 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2018-2019 FIRST. All Rights Reserved.                        */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 package com.team175.robot;
 
+import com.team175.robot.models.AldrinXboxController;
+import com.team175.robot.subsystems.Drive;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import com.team175.robot.commands.ExampleCommand;
-import com.team175.robot.subsystems.ExampleSubsystem;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 
 /**
- * This class is where the bulk of the robot should be declared.  Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls).  Instead, the structure of the robot
- * (including subsystems, commands, and button mappings) should be declared here.
+ * RobotContainer is where the bulk of the robot should be declared.  Since Command-based is a "declarative" paradigm,
+ * very little robot logic should actually be handled in the {@link Robot} periodic methods (other than the scheduler
+ * calls). Instead, the structure of the robot (including subsystems, commands, and button mappings) should be declared
+ * here.
  */
 public class RobotContainer {
-    // The robot's subsystems and commands are defined here...
-    private final ExampleSubsystem exampleSubsystem = new ExampleSubsystem();
 
-    private final ExampleCommand autonomousCommand = new ExampleCommand(exampleSubsystem);
+    // The robot's subsystems and commands are defined here
+    private final Drive drive;
+    private final AldrinXboxController controller;
 
+    private Command autoCommand;
+
+    private static RobotContainer instance;
+
+    private static final int CONTROLLER_PORT = 0;
 
     /**
      * The container for the robot.  Contains subsystems, OI devices, and commands.
      */
-    public RobotContainer() {
-        // Configure the button bindings
+    private RobotContainer() {
+        drive = Drive.getInstance();
+        controller = new AldrinXboxController(CONTROLLER_PORT);
+
+        configureDefaultCommands();
         configureButtonBindings();
     }
 
+    public static RobotContainer getInstance() {
+        if (instance == null) {
+            instance = new RobotContainer();
+        }
+
+        return instance;
+    }
+
+    private void configureDefaultCommands() {
+        // Arcade Drive
+        drive.setDefaultCommand(
+                new FunctionalCommand(
+                        () -> {},
+                        () -> drive.arcadeDrive(
+                                controller.getTriggerAxis(GenericHID.Hand.kRight)
+                                        - controller.getTriggerAxis(GenericHID.Hand.kLeft),
+                                controller.getX(GenericHID.Hand.kLeft)
+                        ),
+                        (interrupted) -> drive.setOpenLoop(0, 0),
+                        () -> false,
+                        drive
+                )
+        );
+    }
+
     /**
-     * Use this method to define your button->command mappings.  Buttons can be created by
-     * instantiating a {@link GenericHID} or one of its subclasses ({@link
-     * edu.wpi.first.wpilibj.Joystick Joystick} or {@link XboxController}), and then passing it to a
-     * {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
+     * Use this method to define your button->command mappings.  Buttons can be created by instantiating a {@link
+     * GenericHID} or one of its subclasses ({@link edu.wpi.first.wpilibj.Joystick Joystick} or {@link XboxController}),
+     * and then passing it to a {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
      */
     private void configureButtonBindings() {
 
@@ -52,6 +78,7 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
-        return autonomousCommand;
+        return autoCommand;
     }
+
 }

@@ -46,6 +46,10 @@ test {
 }
         
 dependencies {
+    compile group: 'org.slf4j', name:'slf4j-api', version: '1.7.30'
+    compile group: 'ch.qos.logback', name:'logback-classic', version: '1.2.3'
+    compile group: 'ch.qos.logback', name:'logback-core', version: '1.2.3'
+
     def junit5Version = '5.5.2'
     implementation wpi.deps.wpilib()
     nativeZip wpi.deps.wpilibJni(wpi.platforms.roborio)
