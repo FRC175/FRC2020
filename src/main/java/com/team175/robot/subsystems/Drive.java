@@ -1,8 +1,8 @@
 package com.team175.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.team175.robot.models.SimpleDoubleSolenoid;
 import com.team175.robot.utils.DriveHelper;
 
 /**
@@ -14,14 +14,14 @@ public class Drive extends SubsystemBase {
 
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
     private final DriveHelper driveHelper;
-    private final SimpleDoubleSolenoid shifter;
+    // private final SimpleDoubleSolenoid shifter;
 
-    private static final int LEFT_MASTER_PORT = 0;
-    private static final int LEFT_SLAVE_PORT = 0;
-    private static final int RIGHT_MASTER_PORT = 0;
-    private static final int RIGHT_SLAVE_PORT = 0;
-    private static final int SHIFTER_FORWARD_CHANNEL = 0;
-    private static final int SHIFTER_REVERSE_CHANNEL = 0;
+    private static final int LEFT_MASTER_PORT = 1;
+    private static final int LEFT_SLAVE_PORT = 2;
+    private static final int RIGHT_MASTER_PORT = 3;
+    private static final int RIGHT_SLAVE_PORT = 4;
+    // private static final int SHIFTER_FORWARD_CHANNEL = 0;
+    // private static final int SHIFTER_REVERSE_CHANNEL = 0;
 
     /**
      * The single instance of {@link Drive} used to implement the "singleton" design pattern. A description of the
@@ -41,10 +41,10 @@ public class Drive extends SubsystemBase {
 
         driveHelper = new DriveHelper(leftMaster, rightMaster);
 
-        shifter = new SimpleDoubleSolenoid(SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
+        /*shifter = new SimpleDoubleSolenoid(SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);*/
 
-        configTalons();
-        configTelemetry();
+        configureTalons();
+        configureTelemetry();
     }
 
     /**
@@ -67,27 +67,29 @@ public class Drive extends SubsystemBase {
         return instance;
     }
 
-    public static double random() {
-        return 0;
-    }
-
     /**
      * Helper method that configures the Talon SRX motor controllers.
      */
-    private void configTalons() {
+    private void configureTalons() {
         leftMaster.configFactoryDefault();
+        leftMaster.setInverted(false);
 
         leftSlave.configFactoryDefault();
+        leftSlave.follow(leftMaster);
+        leftSlave.setInverted(InvertType.FollowMaster);
 
         rightMaster.configFactoryDefault();
+        rightMaster.setInverted(true);
 
         rightSlave.configFactoryDefault();
+        rightSlave.follow(rightMaster);
+        rightSlave.setInverted(InvertType.FollowMaster);
     }
 
     /**
      * Helper method that adds all telemetry data to the telemetry Map.
      */
-    private void configTelemetry() {
+    private void configureTelemetry() {
         // telemetry.put("", null);
     }
 
@@ -101,16 +103,16 @@ public class Drive extends SubsystemBase {
     }
 
     public void cheesyDrive(double throttle, double turn, boolean isQuickTurn) {
-        driveHelper.cheesyDrive(throttle, turn, isQuickTurn, isHighGear());
+        driveHelper.cheesyDrive(throttle, turn, isQuickTurn, true);
     }
 
-    public void setHighGear(boolean shift) {
+    /*public void setHighGear(boolean shift) {
         shifter.set(shift);
     }
 
     public boolean isHighGear() {
         return shifter.get();
-    }
+    }*/
 
     @Override
     public void resetSensors() {

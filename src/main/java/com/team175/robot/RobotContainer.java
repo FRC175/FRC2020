@@ -21,17 +21,27 @@ public class RobotContainer {
 
     private Command autoCommand;
 
+    private static RobotContainer instance;
+
     private static final int CONTROLLER_PORT = 0;
 
     /**
      * The container for the robot.  Contains subsystems, OI devices, and commands.
      */
-    public RobotContainer() {
+    private RobotContainer() {
         drive = Drive.getInstance();
-        controller = new AldrinXboxController(0);
+        controller = new AldrinXboxController(CONTROLLER_PORT);
 
-        // Configure the button bindings
+        configureDefaultCommands();
         configureButtonBindings();
+    }
+
+    public static RobotContainer getInstance() {
+        if (instance == null) {
+            instance = new RobotContainer();
+        }
+
+        return instance;
     }
 
     private void configureDefaultCommands() {
@@ -45,7 +55,7 @@ public class RobotContainer {
                                 controller.getX(GenericHID.Hand.kLeft)
                         ),
                         (interrupted) -> drive.setOpenLoop(0, 0),
-                        () -> true,
+                        () -> false,
                         drive
                 )
         );
