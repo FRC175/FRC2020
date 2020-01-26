@@ -1,8 +1,11 @@
 package com.team175.robot;
 
 import com.team175.robot.commands.ControlTurret;
+import com.team175.robot.commands.TurnToVisionTarget;
 import com.team175.robot.models.AldrinXboxController;
+import com.team175.robot.models.XboxButton;
 import com.team175.robot.subsystems.Drive;
+import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -20,6 +23,7 @@ public class RobotContainer {
     // The robot's subsystems and commands are defined here
     private final Drive drive;
     private final Shooter shooter;
+    private final Limelight limelight;
     private final AldrinXboxController controller;
 
     private Command autoCommand;
@@ -35,6 +39,7 @@ public class RobotContainer {
     private RobotContainer() {
         drive = Drive.getInstance();
         shooter = Shooter.getInstance();
+        limelight = Limelight.getInstance();
         controller = new AldrinXboxController(CONTROLLER_PORT, CONTROLLER_DEADBAND);
 
         configureDefaultCommands();
@@ -75,7 +80,9 @@ public class RobotContainer {
      * and then passing it to a {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
      */
     private void configureButtonBindings() {
-
+        new XboxButton(controller, AldrinXboxController.Button.X).whenPressed(
+                new TurnToVisionTarget(shooter, limelight)
+        );
     }
 
 
