@@ -3,12 +3,12 @@ package com.team175.robot.commands;
 import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 
-public final class TurnToVisionTarget extends CommandBase {
+public final class RotateTurretToTarget extends CommandBase {
 
     private final Shooter shooter;
     private final Limelight limelight;
 
-    public TurnToVisionTarget(Shooter shooter, Limelight limelight) {
+    public RotateTurretToTarget(Shooter shooter, Limelight limelight) {
         this.shooter = shooter;
         this.limelight = limelight;
         addRequirements(this.shooter, this.limelight);

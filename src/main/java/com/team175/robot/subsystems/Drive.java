@@ -10,7 +10,7 @@ import com.team175.robot.utils.DriveHelper;
  * Pigeon gyro. This class is packed with documentation to better understand design choices and robot programming in
  * general.
  */
-public class Drive extends SubsystemBase {
+public final class Drive extends SubsystemBase {
 
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
     private final DriveHelper driveHelper;

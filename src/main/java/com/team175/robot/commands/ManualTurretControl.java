@@ -4,12 +4,14 @@ import com.team175.robot.subsystems.Shooter;
 
 import java.util.function.DoubleSupplier;
 
-public class ControlTurret extends CommandBase {
+public class ManualTurretControl extends CommandBase {
 
     private final Shooter shooter;
     private final DoubleSupplier demand;
 
-    public ControlTurret(Shooter shooter, DoubleSupplier demand) {
+    // Shooter object is the constructor (despite single instance) due to the WPILib recommending the dependency
+    // injection design pattern
+    public ManualTurretControl(Shooter shooter, DoubleSupplier demand) {
         this.shooter = shooter;
         this.demand = demand;
         addRequirements(shooter);

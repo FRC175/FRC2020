@@ -46,10 +46,8 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
      * Associates a {@link Sendable} with this Subsystem.
      * Also updates the child's name.
      *
-     * @param name
-     *         name to give child
-     * @param child
-     *         sendable
+     * @param name  name to give child
+     * @param child sendable
      */
     public void addChild(String name, Sendable child) {
         SendableRegistry.addLW(child, subsystemName, name);

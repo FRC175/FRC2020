@@ -1,7 +1,7 @@
 package com.team175.robot;
 
-import com.team175.robot.commands.ControlTurret;
-import com.team175.robot.commands.TurnToVisionTarget;
+import com.team175.robot.commands.ManualTurretControl;
+import com.team175.robot.commands.RotateTurretToTarget;
 import com.team175.robot.models.AldrinXboxController;
 import com.team175.robot.models.XboxButton;
 import com.team175.robot.subsystems.Drive;
@@ -9,6 +9,8 @@ import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 
@@ -24,13 +26,15 @@ public class RobotContainer {
     private final Drive drive;
     private final Shooter shooter;
     private final Limelight limelight;
-    private final AldrinXboxController controller;
+    private final AldrinXboxController driverController, operatorController;
+    private final SendableChooser<Command> autoChooser;
 
-    private Command autoCommand;
+    private Command autoMode;
 
     private static RobotContainer instance;
 
-    private static final int CONTROLLER_PORT = 0;
+    private static final int DRIVER_CONTROLLER_PORT = 0;
+    private static final int OPERATOR_CONTROLLER_PORT = 1;
     private static final double CONTROLLER_DEADBAND = 0.10;
 
     /**
@@ -40,10 +44,15 @@ public class RobotContainer {
         drive = Drive.getInstance();
         shooter = Shooter.getInstance();
         limelight = Limelight.getInstance();
-        controller = new AldrinXboxController(CONTROLLER_PORT, CONTROLLER_DEADBAND);
+
+        driverController = new AldrinXboxController(DRIVER_CONTROLLER_PORT, CONTROLLER_DEADBAND);
+        operatorController = new AldrinXboxController(OPERATOR_CONTROLLER_PORT, CONTROLLER_DEADBAND);
+
+        autoChooser = new SendableChooser<>();
 
         configureDefaultCommands();
         configureButtonBindings();
+        configAutoChooser();
     }
 
     public static RobotContainer getInstance() {
@@ -60,9 +69,9 @@ public class RobotContainer {
                 new FunctionalCommand(
                         () -> {},
                         () -> drive.arcadeDrive(
-                                controller.getTriggerAxis(GenericHID.Hand.kRight)
-                                        - controller.getTriggerAxis(GenericHID.Hand.kLeft),
-                                controller.getX(GenericHID.Hand.kLeft)
+                                driverController.getTriggerAxis(GenericHID.Hand.kRight)
+                                        - driverController.getTriggerAxis(GenericHID.Hand.kLeft),
+                                driverController.getX(GenericHID.Hand.kLeft)
                         ),
                         (interrupted) -> drive.setOpenLoop(0, 0),
                         () -> false,
@@ -71,7 +80,7 @@ public class RobotContainer {
         );
 
         // Manual turret control
-        shooter.setDefaultCommand(new ControlTurret(shooter, () -> controller.getX(GenericHID.Hand.kRight)));
+        shooter.setDefaultCommand(new ManualTurretControl(shooter, () -> driverController.getX(GenericHID.Hand.kRight)));
     }
 
     /**
@@ -80,9 +89,15 @@ public class RobotContainer {
      * and then passing it to a {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
      */
     private void configureButtonBindings() {
-        new XboxButton(controller, AldrinXboxController.Button.X).whenPressed(
-                new TurnToVisionTarget(shooter, limelight)
+        new XboxButton(driverController, AldrinXboxController.Button.X).whenPressed(
+                new RotateTurretToTarget(shooter, limelight)
         );
+    }
+
+    private void configAutoChooser() {
+        autoChooser.setDefaultOption("No Auto", null);
+        // Add more auto modes here
+        SmartDashboard.putData("Auto Mode Chooser", autoChooser);
     }
 
 
@@ -91,9 +106,8 @@ public class RobotContainer {
      *
      * @return the command to run in autonomous
      */
-    public Command getAutonomousCommand() {
-        // An ExampleCommand will run in autonomous
-        return autoCommand;
+    public Command getAutoMode() {
+        return autoMode = autoChooser.getSelected();
     }
 
 }
