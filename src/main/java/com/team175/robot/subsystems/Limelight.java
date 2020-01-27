@@ -106,7 +106,7 @@ public final class Limelight extends SubsystemBase {
     public void calculateRotation() {
         if (isTargetDetected()) {
             // Proportional turn based on tx
-            rotation = rotationController.calculate(getHorizontalOffset(), 0); // TODO: Make constant
+            rotation = rotationController.calculate(getHorizontalOffset(), ROTATION_SETPOINT);
 
             isAtTarget = rotationController.atSetpoint();
 
