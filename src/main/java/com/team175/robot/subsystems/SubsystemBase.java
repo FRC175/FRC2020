@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -42,19 +44,6 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
         CommandScheduler.getInstance().registerSubsystem(this);
     }
 
-    /**
-     * Associates a {@link Sendable} with this Subsystem.
-     * Also updates the child's name.
-     *
-     * @param name
-     *         name to give child
-     * @param child
-     *         sendable
-     */
-    public void addChild(String name, Sendable child) {
-        SendableRegistry.addLW(child, subsystemName, name);
-    }
-
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.setSmartDashboardType("Subsystem");
@@ -66,7 +55,7 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
         builder.addStringProperty(".command",
                 () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "none", null);
 
-        /*if (!telemetry.isEmpty()) {
+        if (!telemetry.isEmpty()) {
             // Add data to builder filtered by data type
             telemetry.forEach((k, v) -> {
                 String subKey = "." + k;
@@ -86,7 +75,13 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
                     builder.addStringProperty(subKey, rawValue::toString, null);
                 }
             });
-        }*/
+        }
+    }
+
+    @Override
+    public void periodic() {
+        logger.debug("This is coming from periodic()!");
+        logger.debug("This is another line coming from periodic();\n");
     }
 
     /**

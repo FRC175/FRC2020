@@ -90,7 +90,10 @@ public class Drive extends SubsystemBase {
      * Helper method that adds all telemetry data to the telemetry Map.
      */
     private void configureTelemetry() {
-        // telemetry.put("", null);
+        telemetry.put("Left Demand", this::getLeftDemand);
+        telemetry.put("Left Voltage", this::getLeftVoltage);
+        telemetry.put("Right Demand", this::getRightDemand);
+        telemetry.put("Right Voltage", this::getRightVoltage);
     }
 
     public void setOpenLoop(double leftDemand, double rightDemand) {
@@ -108,9 +111,25 @@ public class Drive extends SubsystemBase {
 
     /*public void setHighGear(boolean shift) {
         shifter.set(shift);
+    }*/
+
+    public double getLeftDemand() {
+        return leftMaster.getMotorOutputPercent();
     }
 
-    public boolean isHighGear() {
+    public double getLeftVoltage() {
+        return leftMaster.getMotorOutputVoltage();
+    }
+
+    public double getRightDemand() {
+        return rightMaster.getMotorOutputPercent();
+    }
+
+    public double getRightVoltage() {
+        return rightMaster.getMotorOutputVoltage();
+    }
+
+    /*public boolean isHighGear() {
         return shifter.get();
     }*/
 
