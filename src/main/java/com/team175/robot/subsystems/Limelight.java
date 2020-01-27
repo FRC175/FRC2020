@@ -103,7 +103,7 @@ public final class Limelight extends SubsystemBase {
         return isAtTarget;
     }
 
-    public void calculateTargetDrive() {
+    public void calculateRotation() {
         if (isTargetDetected()) {
             // Proportional turn based on tx
             rotation = rotationController.calculate(getHorizontalOffset(), 0); // TODO: Make constant
