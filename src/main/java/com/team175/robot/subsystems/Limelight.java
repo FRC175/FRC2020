@@ -11,23 +11,24 @@ import edu.wpi.first.wpilibj.controller.PIDController;
 public final class Limelight extends SubsystemBase {
 
     private final NetworkTable table;
-    private final PIDController turnController;
+    private final PIDController rotationController;
 
-    private double turn;
+    private double rotation;
     private boolean isAtTarget;
 
-    private static final int ROTATION_DEADBAND = 2;
-    private static final Gains TURN_GAINS = new Gains(-0.05, 0, 0, 0, 0, 0);
+    public static final int ROTATION_SETPOINT = 0; // Target at the center of the limelight
+    private static final int ROTATION_DEADBAND = 2; // Degrees
+    private static final Gains ROTATION_GAINS = new Gains(-0.05, 0, 0);
 
     private static Limelight instance;
 
     private Limelight() {
         table = NetworkTableInstance.getDefault().getTable("limelight");
-        turnController = new PIDController(TURN_GAINS.getKp(), TURN_GAINS.getKi(), TURN_GAINS.getKd());
+        rotationController = new PIDController(ROTATION_GAINS.getKp(), ROTATION_GAINS.getKi(), ROTATION_GAINS.getKd());
 
-        // TODO: Maybe add input range
-        turnController.setTolerance(ROTATION_DEADBAND);
-        turnController.enableContinuousInput(-30, 30);
+        rotationController.setTolerance(ROTATION_DEADBAND);
+        // The range of the limelight is between -30 degrees and 30 degrees
+        rotationController.enableContinuousInput(-30, 30);
 
         configureTelemetry();
     }
@@ -43,11 +44,9 @@ public final class Limelight extends SubsystemBase {
     private void configureTelemetry() {
         telemetry.put("IsTargetDetected", this::isTargetDetected);
         telemetry.put("HorizontalOffset", this::getHorizontalOffset);
-        telemetry.put("VerticalOffset", this::getVerticalOffset);
-        telemetry.put("TargetArea", this::getTargetArea);
         telemetry.put("Rotation", this::getRotation);
         telemetry.put("PipelineNum", this::getPipeline);
-        telemetry.put("CalculatedTurn", () -> turn);
+        telemetry.put("CalculatedRotation", this::getRotation);
     }
 
     private void setPipeline(int pipelineNum) {
@@ -70,7 +69,7 @@ public final class Limelight extends SubsystemBase {
         return table.getEntry("ta").getDouble(0);
     }
 
-    private double getRotation() {
+    private double getSkew() {
         return table.getEntry("ts").getDouble(0);
     }
 
@@ -96,8 +95,8 @@ public final class Limelight extends SubsystemBase {
         // table.getEntry("camMode").setNumber(isTrackingMode ? 0 : 1);
     }
 
-    public double getTurn() {
-        return turn;
+    public double getRotation() {
+        return rotation;
     }
 
     public boolean isAtTarget() {
@@ -107,18 +106,18 @@ public final class Limelight extends SubsystemBase {
     public void calculateTargetDrive() {
         if (isTargetDetected()) {
             // Proportional turn based on tx
-            turn = turnController.calculate(getHorizontalOffset(), 0); // TODO: Make constant
+            rotation = rotationController.calculate(getHorizontalOffset(), 0); // TODO: Make constant
 
-            isAtTarget = turnController.atSetpoint();
+            isAtTarget = rotationController.atSetpoint();
 
-            logger.debug("Turn = {}", turn);
+            logger.debug("Turn = {}", rotation);
             logger.debug("IsAtTarget = {}", isAtTarget);
         } else {
             // turn = SEEK_TURN;
-            turn = 0;
+            rotation = 0;
             // isAtTarget = false;
             isAtTarget = true;
-            logger.warn("NO TARGET DETECTED!!! Turret is turning until it sees a target.");
+            logger.warn("NO TARGET DETECTED!!! TURN THE TURRET TO A CARDINAL SO THAT IT SEES THE TARGET.");
         }
     }
 

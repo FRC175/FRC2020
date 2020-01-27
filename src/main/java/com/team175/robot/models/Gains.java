@@ -23,6 +23,10 @@ public class Gains {
         this.cruiseVelocity = cruiseVelocity;
     }
 
+    public Gains(double kP, double kI, double kD) {
+        this(kP, kI, kD, 0, 0, 0);
+    }
+
     public double getKp() {
         return kP;
     }

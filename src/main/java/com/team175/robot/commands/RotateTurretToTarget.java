@@ -23,7 +23,7 @@ public final class RotateTurretToTarget extends CommandBase {
     @Override
     public void execute() {
         limelight.calculateTargetDrive();
-        shooter.setTurretOpenLoop(limelight.getTurn());
+        shooter.setTurretOpenLoop(limelight.getRotation());
     }
 
     @Override
