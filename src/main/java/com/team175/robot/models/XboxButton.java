@@ -8,24 +8,36 @@ import edu.wpi.first.wpilibj2.command.button.Button;
  */
 public class XboxButton extends Button {
 
-    private final AldrinXboxController controller;
+    private final AdvancedXboxController controller;
 
-    private AldrinXboxController.Button button;
-    private AldrinXboxController.DPad dPadButton;
+    private AdvancedXboxController.Button button;
+    private AdvancedXboxController.DPad dPadButton;
+    private AdvancedXboxController.Trigger trigger;
 
-    public XboxButton(AldrinXboxController controller, AldrinXboxController.Button button) {
+    public XboxButton(AdvancedXboxController controller, AdvancedXboxController.Button button) {
         this.controller = controller;
         this.button = button;
     }
 
-    public XboxButton(AldrinXboxController controller, AldrinXboxController.DPad dPadButton) {
+    public XboxButton(AdvancedXboxController controller, AdvancedXboxController.DPad dPadButton) {
         this.controller = controller;
         this.dPadButton = dPadButton;
     }
 
+    public XboxButton(AdvancedXboxController controller, AdvancedXboxController.Trigger trigger) {
+        this.controller = controller;
+        this.trigger = trigger;
+    }
+
     @Override
     public boolean get() {
-        return dPadButton == null ? controller.getRawButton(button.value) : controller.getPOV() == dPadButton.value;
+        if (button != null) {
+            return controller.getRawButton(button.value);
+        } else if (dPadButton != null) {
+            return controller.getPOV() == dPadButton.value;
+        } else {
+            return controller.getRawAxis(trigger.value) > 0.1;
+        }
     }
 
 }

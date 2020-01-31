@@ -4,7 +4,7 @@ import com.team175.robot.subsystems.Shooter;
 
 import java.util.function.DoubleSupplier;
 
-public class ManualTurretControl extends CommandBase {
+public final class ManualTurretControl extends CommandBase {
 
     private final Shooter shooter;
     private final DoubleSupplier demand;

@@ -4,6 +4,7 @@ import com.team175.robot.models.Gains;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.controller.PIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * Limelight represents the limelight vision processing unit on the robot.
@@ -105,20 +106,21 @@ public final class Limelight extends SubsystemBase {
 
     public void calculateRotation() {
         if (isTargetDetected()) {
-            // Proportional turn based on tx
             rotation = rotationController.calculate(getHorizontalOffset(), ROTATION_SETPOINT);
-
             isAtTarget = rotationController.atSetpoint();
-
-            logger.debug("Turn = {}", rotation);
+            logger.debug("Rotation = {}", rotation);
             logger.debug("IsAtTarget = {}", isAtTarget);
         } else {
-            // turn = SEEK_TURN;
             rotation = 0;
-            // isAtTarget = false;
             isAtTarget = true;
-            logger.warn("NO TARGET DETECTED!!! TURN THE TURRET TO A CARDINAL SO THAT IT SEES THE TARGET.");
+            logger.warn("NO TARGET DETECTED!!! ROTATE THE TURRET TO A CARDINAL SO THAT IT SEES THE TARGET.");
         }
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Limelight Position", getHorizontalOffset());
+        SmartDashboard.putNumber("Limelight Setpoint", ROTATION_SETPOINT);
     }
 
     @Override

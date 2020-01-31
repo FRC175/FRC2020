@@ -2,8 +2,9 @@ package com.team175.robot;
 
 import com.team175.robot.commands.ManualTurretControl;
 import com.team175.robot.commands.RotateTurretToTarget;
-import com.team175.robot.models.AldrinXboxController;
+import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
+import com.team175.robot.positions.TurretCardinal;
 import com.team175.robot.subsystems.Drive;
 import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
@@ -20,13 +21,14 @@ import edu.wpi.first.wpilibj2.command.FunctionalCommand;
  * calls). Instead, the structure of the robot (including subsystems, commands, and button mappings) should be declared
  * here.
  */
-public class RobotContainer {
+public final class RobotContainer {
 
     // The robot's subsystems and commands are defined here
     private final Drive drive;
     private final Shooter shooter;
     private final Limelight limelight;
-    private final AldrinXboxController driverController, operatorController;
+    private final AdvancedXboxController driverController;
+    // , operatorController;
     private final SendableChooser<Command> autoChooser;
 
     private Command autoMode;
@@ -45,14 +47,14 @@ public class RobotContainer {
         shooter = Shooter.getInstance();
         limelight = Limelight.getInstance();
 
-        driverController = new AldrinXboxController(DRIVER_CONTROLLER_PORT, CONTROLLER_DEADBAND);
-        operatorController = new AldrinXboxController(OPERATOR_CONTROLLER_PORT, CONTROLLER_DEADBAND);
+        driverController = new AdvancedXboxController(DRIVER_CONTROLLER_PORT, CONTROLLER_DEADBAND);
+        // operatorController = new AdvancedXboxController(OPERATOR_CONTROLLER_PORT, CONTROLLER_DEADBAND);
 
         autoChooser = new SendableChooser<>();
 
         configureDefaultCommands();
         configureButtonBindings();
-        configAutoChooser();
+        configureAutoChooser();
     }
 
     public static RobotContainer getInstance() {
@@ -67,7 +69,8 @@ public class RobotContainer {
         // Arcade Drive
         drive.setDefaultCommand(
                 new FunctionalCommand(
-                        () -> {},
+                        () -> {
+                        },
                         () -> drive.arcadeDrive(
                                 driverController.getTriggerAxis(GenericHID.Hand.kRight)
                                         - driverController.getTriggerAxis(GenericHID.Hand.kLeft),
@@ -77,6 +80,13 @@ public class RobotContainer {
                         () -> false,
                         drive
                 )
+                /*new RunCommand(
+                        () -> drive.arcadeDrive(
+                                driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft),
+                                driverController.getX(GenericHID.Hand.kLeft)
+                        ),
+                        drive
+                ).whenFinished(() -> drive.setOpenLoop(0, 0));*/
         );
 
         // Manual turret control
@@ -89,12 +99,24 @@ public class RobotContainer {
      * and then passing it to a {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
      */
     private void configureButtonBindings() {
-        new XboxButton(driverController, AldrinXboxController.Button.X).whenPressed(
-                new RotateTurretToTarget(shooter, limelight)
-        );
+        new XboxButton(driverController, AdvancedXboxController.Button.X)
+                .whileHeld(new RotateTurretToTarget(shooter, limelight));
+        new XboxButton(driverController, AdvancedXboxController.Button.Y)
+                .whenPressed(limelight::blinkLED, limelight);
+        new XboxButton(driverController, AdvancedXboxController.Button.Y)
+                .whenPressed(() -> limelight.setLED(true), limelight)
+                .whenReleased(() -> limelight.setLED(false), limelight);
+        new XboxButton(driverController, AdvancedXboxController.DPad.UP)
+                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.NORTH), shooter);
+        new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
+                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.EAST), shooter);
+        new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
+                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.SOUTH), shooter);
+        new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
+                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.WEST), shooter);
     }
 
-    private void configAutoChooser() {
+    private void configureAutoChooser() {
         autoChooser.setDefaultOption("No Auto", null);
         // Add more auto modes here
         SmartDashboard.putData("Auto Mode Chooser", autoChooser);

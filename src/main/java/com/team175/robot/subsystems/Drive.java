@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team175.robot.utils.DriveHelper;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 /**
  * Drive represents the drivetrain of the robot. It is composed of 4 cim motors (controlled with 4 Talon SRXs) and a
@@ -14,7 +15,7 @@ public final class Drive extends SubsystemBase {
 
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
     private final DriveHelper driveHelper;
-    // private final SimpleDoubleSolenoid shifter;
+    /*private final DoubleSolenoid shifter;*/
 
     private static final int LEFT_MASTER_PORT = 1;
     private static final int LEFT_SLAVE_PORT = 2;
@@ -41,7 +42,7 @@ public final class Drive extends SubsystemBase {
 
         driveHelper = new DriveHelper(leftMaster, rightMaster);
 
-        /*shifter = new SimpleDoubleSolenoid(SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);*/
+        /*shifter = new DoubleSolenoid(SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);*/
 
         configureTalons();
         configureTelemetry();
@@ -107,11 +108,11 @@ public final class Drive extends SubsystemBase {
     }
 
     /*public void setHighGear(boolean shift) {
-        shifter.set(shift);
+        shifter.set(shift ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
     }
 
     public boolean isHighGear() {
-        return shifter.get();
+        return shifter.get() == DoubleSolenoid.Value.kForward;
     }*/
 
     @Override

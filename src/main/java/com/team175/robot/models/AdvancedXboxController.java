@@ -3,10 +3,10 @@ package com.team175.robot.models;
 import edu.wpi.first.wpilibj.XboxController;
 
 /**
- * AldrinXboxController is an extension to {@link edu.wpi.first.wpilibj.XboxController} that adds a software deadband to
- * the various axes of the controller.
+ * AdvancedXboxController is an extension to {@link edu.wpi.first.wpilibj.XboxController} that adds a software deadband
+ * to the various axes of the controller and defines enums to represent all the buttons and triggers on the controller.
  */
-public class AldrinXboxController extends XboxController {
+public class AdvancedXboxController extends XboxController {
 
     private final double deadband;
 
@@ -42,12 +42,23 @@ public class AldrinXboxController extends XboxController {
         }
     }
 
+    public enum Trigger {
+        LEFT(2),
+        RIGHT(3);
+
+        final int value;
+
+        Trigger(int value) {
+            this.value = value;
+        }
+    }
+
     /**
      * Construct an instance of an xbox controller. The controller index is the USB port on the driver station.
      *
      * @param port The port on the Driver Station that the controller is plugged into.
      */
-    public AldrinXboxController(int port) {
+    public AdvancedXboxController(int port) {
         this(port, 0);
     }
 
@@ -57,7 +68,7 @@ public class AldrinXboxController extends XboxController {
      *
      * @param port The port on the Driver Station that the controller is plugged into.
      */
-    public AldrinXboxController(int port, double deadband) {
+    public AdvancedXboxController(int port, double deadband) {
         super(port);
         this.deadband = deadband;
     }

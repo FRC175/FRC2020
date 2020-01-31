@@ -8,16 +8,19 @@
 package com.team175.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 /**
  * Robot is the hub where all the different components of the robot come together to make one cohesive masterpiece.
  */
-public class Robot extends TimedRobot {
+public final class Robot extends TimedRobot {
 
     private RobotContainer robotContainer;
     private Command autoCommand;
+    private double startTime;
 
     /**
      * This method is run when the robot is first started up and should be used for any initialization code.
@@ -82,6 +85,8 @@ public class Robot extends TimedRobot {
         if (autoCommand != null) {
             autoCommand.cancel();
         }
+
+        startTime = Timer.getFPGATimestamp();
     }
 
     /**
@@ -89,6 +94,8 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void teleopPeriodic() {
+        // Time for FRC-Grapher
+        SmartDashboard.putNumber("frc-grapher-timestamp", Timer.getFPGATimestamp() - startTime);
     }
 
     @Override
