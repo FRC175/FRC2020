@@ -66,11 +66,11 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
                 } else if (rawValue instanceof Boolean) {
                     builder.addBooleanProperty(subKey, (BooleanSupplier) v, null);
                 } else if (rawValue instanceof double[]) {
-                    builder.addDoubleArrayProperty(subKey, v, null);
+                    builder.addDoubleArrayProperty(subKey, (Supplier<double[]>) v, null);
                 } else if (rawValue instanceof boolean[]) {
-                    builder.addBooleanArrayProperty(subKey, v, null);
+                    builder.addBooleanArrayProperty(subKey, (Supplier<boolean[]>) v, null);
                 } else if (rawValue instanceof String[]) {
-                    builder.addStringArrayProperty(subKey, v, null);
+                    builder.addStringArrayProperty(subKey, (Supplier<String[]>) v, null);
                 } else {
                     builder.addStringProperty(subKey, rawValue::toString, null);
                 }
