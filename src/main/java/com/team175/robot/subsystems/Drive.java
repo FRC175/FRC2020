@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team175.robot.utils.DriveHelper;
+import io.github.oblarg.oblog.annotations.Log;
 
 /**
  * Drive represents the drivetrain of the robot. It is composed of 4 cim motors (controlled with 4 Talon SRXs) and a
@@ -113,18 +114,22 @@ public class Drive extends SubsystemBase {
         shifter.set(shift);
     }*/
 
+    @Log
     public double getLeftDemand() {
         return leftMaster.getMotorOutputPercent();
     }
 
+    @Log
     public double getLeftVoltage() {
         return leftMaster.getMotorOutputVoltage();
     }
 
+    @Log
     public double getRightDemand() {
         return rightMaster.getMotorOutputPercent();
     }
 
+    @Log
     public double getRightVoltage() {
         return rightMaster.getMotorOutputVoltage();
     }
@@ -132,6 +137,11 @@ public class Drive extends SubsystemBase {
     /*public boolean isHighGear() {
         return shifter.get();
     }*/
+
+    public void logTest() {
+        logger.warn("I AM WARNING YOU!");
+        logger.error("THIS IS AN ERROR!!!");
+    }
 
     @Override
     public void resetSensors() {

@@ -5,13 +5,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SendableRegistry;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import io.github.oblarg.oblog.Loggable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -19,7 +18,7 @@ import java.util.function.Supplier;
  * automated integrity checking of necessary components and reset of sensor(s). A subsystem must only have one
  * instance, which is implemented by the singleton design pattern (after all, a robot can only have one drivetrain).
  */
-public abstract class SubsystemBase implements Subsystem, Sendable {
+public abstract class SubsystemBase implements Subsystem, Sendable, Loggable {
 
     /**
      * Logger used to document the various actions performed by a subsystem.
@@ -35,8 +34,6 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
      * Used to make interaction with {@link SendableRegistry} easier.
      */
     private final String subsystemName = getClass().getSimpleName();
-
-    
 
     /**
      * Constructor

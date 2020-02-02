@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import io.github.oblarg.oblog.Logger;
 
 /**
  * RobotContainer is where the bulk of the robot should be declared.  Since Command-based is a "declarative" paradigm,
@@ -18,6 +19,7 @@ public class RobotContainer {
     // The robot's subsystems and commands are defined here
     private final Drive drive;
     private final AldrinXboxController controller;
+    private final Logger oblogLogger;
 
     private Command autoCommand;
 
@@ -31,9 +33,11 @@ public class RobotContainer {
     private RobotContainer() {
         drive = Drive.getInstance();
         controller = new AldrinXboxController(CONTROLLER_PORT);
+        oblogLogger = new Logger();
 
         configureDefaultCommands();
         configureButtonBindings();
+        configureOblogLogger();
     }
 
     public static RobotContainer getInstance() {
@@ -70,6 +74,13 @@ public class RobotContainer {
 
     }
 
+    private void configureOblogLogger() {
+        Logger.configureLoggingAndConfig(this, false);
+    }
+
+    public void updateOblogLogger() {
+        oblogLogger.updateEntries();
+    }
 
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
