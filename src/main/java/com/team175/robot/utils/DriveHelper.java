@@ -11,7 +11,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 public final class DriveHelper {
 
     // Talon SRXs
-    private TalonSRX left, right;
+    private final TalonSRX left, right;
 
     // Cheesy Drive variables
     private double oldWheel = 0;

@@ -15,8 +15,18 @@
         </encoder>
     </appender>
 
+    <!--<appender name="DRIVER_STATION" class="com.team175.robot.appender.DriverStationAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{100} - %msg%n</pattern>
+        </encoder>
+    </appender>-->
+
     <root level="debug">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </root>
+
+    <!--<root level="warn">
+        <appender-ref ref="DRIVER_STATION"/>
+    </root>-->
 </configuration>
