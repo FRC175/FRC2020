@@ -1,20 +1,22 @@
 package com.team175.robot.positions;
 
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+
 public enum TurretCardinal {
 
-    NORTH(0),
-    EAST(900),
-    SOUTH(1800),
-    WEST(2750);
+    NORTH(Rotation2d.fromDegrees(0)),
+    EAST(Rotation2d.fromDegrees(90)),
+    SOUTH(Rotation2d.fromDegrees(180)),
+    WEST(Rotation2d.fromDegrees(270));
 
-    private final int angle;
+    private final Rotation2d heading;
 
-    TurretCardinal(int angle) {
-        this.angle = angle;
+    TurretCardinal(Rotation2d heading) {
+        this.heading = heading;
     }
 
-    public int toDegrees() {
-        return angle;
+    public Rotation2d toRotation2d() {
+        return heading;
     }
 
 }

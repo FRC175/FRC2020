@@ -1,5 +1,6 @@
 package com.team175.robot;
 
+import com.team175.robot.commands.LockOntoTarget;
 import com.team175.robot.commands.RotateTurretToTarget;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
@@ -83,15 +84,17 @@ public final class RobotContainer {
      */
     private void configureButtonBindings() {
         // Align to target
+        /*new XboxButton(driverController, AdvancedXboxController.Button.X)
+                .whileHeld(new RotateTurretToTarget(shooter, limelight));*/
         new XboxButton(driverController, AdvancedXboxController.Button.X)
-                .whileHeld(new RotateTurretToTarget(shooter, limelight));
+                .toggleWhenPressed(new LockOntoTarget(shooter, limelight));
         // Blink LED
         new XboxButton(driverController, AdvancedXboxController.Button.Y)
                 .whenPressed(new InstantCommand(limelight::blinkLED, limelight)
                         .andThen(new WaitCommand(1))
-                        .andThen(limelight::turnOnLED, limelight));
+                        .andThen(limelight::defaultLED, limelight));
         // Toggle LED
-        new XboxButton(driverController, AdvancedXboxController.Button.A)
+        /*new XboxButton(driverController, AdvancedXboxController.Button.A)
                 .toggleWhenPressed(new InstantCommand() {
                     private boolean toggle = true;
 
@@ -100,7 +103,7 @@ public final class RobotContainer {
                         toggle = !toggle;
                         limelight.setLED(toggle);
                     }
-                });
+                });*/
         // Manual Turret Control
         new XboxButton(driverController, AdvancedXboxController.Button.RIGHT_BUMPER)
                 .whileHeld(new RunCommand(

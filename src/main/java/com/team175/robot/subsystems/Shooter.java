@@ -5,6 +5,7 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team175.robot.models.Gains;
 import com.team175.robot.positions.TurretCardinal;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public final class Shooter extends SubsystemBase {
@@ -61,20 +62,27 @@ public final class Shooter extends SubsystemBase {
         turret.set(ControlMode.Position, turretSetpoint);
     }
 
-    public void setTurretAngle(int angle) {
+    public void setTurretHeading(Rotation2d heading) {
         // TODO: Make this actually work
-        setTurretPosition(angle);
+        setTurretPosition((int) heading.getDegrees());
     }
 
     public void setTurretCardinal(TurretCardinal cardinal) {
-        setTurretAngle(cardinal.toDegrees());
+        setTurretHeading(cardinal.toRotation2d());
+    }
+
+    public void setTurretFieldCentricCardinal(TurretCardinal cardinal, Rotation2d gyroHeading) {
+        /*Rotation2d heading = Rotation2d.fromDegrees(
+                Math.abs(cardinal.toRotation2d().getDegrees() - gyroHeading.getDegrees())
+        );
+        setTurretHeading(heading);*/
     }
 
     public int getTurretPosition() {
         return turret.getSelectedSensorPosition();
     }
 
-    public int getTurretAngle() {
+    public int getTurretHeading() {
         // TODO: Make this work
         return turret.getSelectedSensorPosition();
     }
