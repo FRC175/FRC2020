@@ -15,7 +15,7 @@ public final class Shooter extends SubsystemBase {
 
     private static final int TURRET_PORT = 5;
     private static final int TURRET_DEADBAND = 5;
-    private static final Gains TURRET_GAINS = new Gains(0, 0, 0, 0, 0, 0);
+    private static final Gains TURRET_GAINS = new Gains(10.1, 0, 20.2, 0, 0, 0);
 
     private static Shooter instance;
 
@@ -38,12 +38,15 @@ public final class Shooter extends SubsystemBase {
         turret.configFactoryDefault();
         turret.setInverted(true);
         turret.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+        turret.setSensorPhase(true);
         turret.config_kP(0, TURRET_GAINS.getKp());
         turret.config_kI(0, TURRET_GAINS.getKi());
         turret.config_kD(0, TURRET_GAINS.getKd());
         turret.config_kF(0, TURRET_GAINS.getKf());
         turret.configMotionAcceleration(TURRET_GAINS.getAcceleration());
         turret.configMotionCruiseVelocity(TURRET_GAINS.getCruiseVelocity());
+        // TODO: Comment out in real robot
+        turret.setSelectedSensorPosition(0);
 
         // Homing
         // setTurretAngle(0);
@@ -53,9 +56,9 @@ public final class Shooter extends SubsystemBase {
         turret.set(ControlMode.PercentOutput, demand);
     }
 
-    private void setTurretPosition(int position) {
+    public void setTurretPosition(int position) {
         turretSetpoint = position;
-        turret.set(ControlMode.MotionMagic, turretSetpoint);
+        turret.set(ControlMode.Position, turretSetpoint);
     }
 
     public void setTurretAngle(int angle) {
@@ -76,11 +79,11 @@ public final class Shooter extends SubsystemBase {
         return turret.getSelectedSensorPosition();
     }
 
-    /*@Override
+    @Override
     public void periodic() {
         SmartDashboard.putNumber("Turret Position", getTurretPosition());
         SmartDashboard.putNumber("Turret Setpoint", turretSetpoint);
-    }*/
+    }
 
     @Override
     public void resetSensors() {

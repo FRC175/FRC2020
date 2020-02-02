@@ -19,14 +19,13 @@ public final class Limelight extends SubsystemBase {
 
     public static final int ROTATION_SETPOINT = 0; // Target at the center of the limelight
     private static final int ROTATION_DEADBAND = 2; // Degrees
-    private static final Gains ROTATION_GAINS = new Gains(-0.05, 0, 0);
+    private static final Gains ROTATION_GAINS = new Gains(-0.075, 0, 0);
 
     private static Limelight instance;
 
     private Limelight() {
         table = NetworkTableInstance.getDefault().getTable("limelight");
         rotationController = new PIDController(ROTATION_GAINS.getKp(), ROTATION_GAINS.getKi(), ROTATION_GAINS.getKd());
-
         rotationController.setTolerance(ROTATION_DEADBAND);
         // The range of the limelight is between -30 degrees and 30 degrees
         rotationController.enableContinuousInput(-30, 30);
@@ -82,6 +81,14 @@ public final class Limelight extends SubsystemBase {
         table.getEntry("ledMode").setNumber(enable ? 3 : 1);
     }
 
+    public void turnOnLED() {
+        setLED(true);
+    }
+
+    public void turnOffLED() {
+        setLED(false);
+    }
+
     public void blinkLED() {
         table.getEntry("ledMode").setNumber(2);
     }
@@ -90,10 +97,13 @@ public final class Limelight extends SubsystemBase {
         table.getEntry("ledMode").setNumber(0);
     }
 
-    public void setCameraMode(boolean isTrackingMode) {
-        // 0 => Tracking Mode; 1 => Driver Mode
-        setPipeline(isTrackingMode ? 0 : 1);
-        // table.getEntry("camMode").setNumber(isTrackingMode ? 0 : 1);
+    public void setDriverMode() {
+        setPipeline(1);
+    }
+
+    public void setTrackingMode() {
+        // Zoomed tracking mode
+        setPipeline(2);
     }
 
     public double getRotation() {
@@ -127,7 +137,7 @@ public final class Limelight extends SubsystemBase {
     public void resetSensors() {
         setPipeline(0);
         defaultLED();
-        setCameraMode(false);
+        setDriverMode();
     }
 
     @Override

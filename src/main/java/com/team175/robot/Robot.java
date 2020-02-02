@@ -7,6 +7,7 @@
 
 package com.team175.robot;
 
+import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -30,6 +31,7 @@ public final class Robot extends TimedRobot {
         // Instantiate the RobotContainer. This will perform all our button bindings, and put our autonomous chooser on
         // the dashboard.
         robotContainer = RobotContainer.getInstance();
+        startTime = Timer.getFPGATimestamp();
     }
 
     /**
@@ -86,7 +88,7 @@ public final class Robot extends TimedRobot {
             autoCommand.cancel();
         }
 
-        startTime = Timer.getFPGATimestamp();
+        // Shooter.getInstance().setTurretPosition((int) SmartDashboard.getNumber("Turret Setpoint", 0));
     }
 
     /**

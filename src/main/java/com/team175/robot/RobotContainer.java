@@ -1,6 +1,5 @@
 package com.team175.robot;
 
-import com.team175.robot.commands.ManualTurretControl;
 import com.team175.robot.commands.RotateTurretToTarget;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
@@ -12,8 +11,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.*;
 
 /**
  * RobotContainer is where the bulk of the robot should be declared.  Since Command-based is a "declarative" paradigm,
@@ -68,29 +66,14 @@ public final class RobotContainer {
     private void configureDefaultCommands() {
         // Arcade Drive
         drive.setDefaultCommand(
-                new FunctionalCommand(
-                        () -> {
-                        },
-                        () -> drive.arcadeDrive(
-                                driverController.getTriggerAxis(GenericHID.Hand.kRight)
-                                        - driverController.getTriggerAxis(GenericHID.Hand.kLeft),
-                                driverController.getX(GenericHID.Hand.kLeft)
-                        ),
-                        (interrupted) -> drive.setOpenLoop(0, 0),
-                        () -> false,
-                        drive
-                )
-                /*new RunCommand(
+                new RunCommand(
                         () -> drive.arcadeDrive(
                                 driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft),
                                 driverController.getX(GenericHID.Hand.kLeft)
                         ),
                         drive
-                ).whenFinished(() -> drive.setOpenLoop(0, 0));*/
+                ).andThen(() -> drive.arcadeDrive(0, 0))
         );
-
-        // Manual turret control
-        shooter.setDefaultCommand(new ManualTurretControl(shooter, () -> driverController.getX(GenericHID.Hand.kRight)));
     }
 
     /**
@@ -99,13 +82,32 @@ public final class RobotContainer {
      * and then passing it to a {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
      */
     private void configureButtonBindings() {
+        // Align to target
         new XboxButton(driverController, AdvancedXboxController.Button.X)
                 .whileHeld(new RotateTurretToTarget(shooter, limelight));
+        // Blink LED
         new XboxButton(driverController, AdvancedXboxController.Button.Y)
-                .whenPressed(limelight::blinkLED, limelight);
-        new XboxButton(driverController, AdvancedXboxController.Button.Y)
-                .whenPressed(() -> limelight.setLED(true), limelight)
-                .whenReleased(() -> limelight.setLED(false), limelight);
+                .whenPressed(new InstantCommand(limelight::blinkLED, limelight)
+                        .andThen(new WaitCommand(1))
+                        .andThen(limelight::turnOnLED, limelight));
+        // Toggle LED
+        new XboxButton(driverController, AdvancedXboxController.Button.A)
+                .toggleWhenPressed(new InstantCommand() {
+                    private boolean toggle = true;
+
+                    @Override
+                    public void initialize() {
+                        toggle = !toggle;
+                        limelight.setLED(toggle);
+                    }
+                });
+        // Manual Turret Control
+        new XboxButton(driverController, AdvancedXboxController.Button.RIGHT_BUMPER)
+                .whileHeld(new RunCommand(
+                        () -> shooter.setTurretOpenLoop(driverController.getX(GenericHID.Hand.kLeft)),
+                        shooter
+                ).andThen(() -> shooter.setTurretOpenLoop(0)));
+        // Turret Cardinals
         new XboxButton(driverController, AdvancedXboxController.DPad.UP)
                 .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.NORTH), shooter);
         new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
