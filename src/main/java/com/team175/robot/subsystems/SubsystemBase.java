@@ -36,6 +36,8 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
      */
     private final String subsystemName = getClass().getSimpleName();
 
+    
+
     /**
      * Constructor
      */
@@ -55,7 +57,7 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
         builder.addStringProperty(".command",
                 () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "none", null);
 
-        if (!telemetry.isEmpty()) {
+        /*if (!telemetry.isEmpty()) {
             // Add data to builder filtered by data type
             telemetry.forEach((k, v) -> {
                 String subKey = "." + k;
@@ -75,13 +77,13 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
                     builder.addStringProperty(subKey, rawValue::toString, null);
                 }
             });
-        }
+        }*/
     }
 
     @Override
     public void periodic() {
-        logger.debug("This is coming from periodic()!");
-        logger.debug("This is another line coming from periodic();\n");
+        /*logger.debug("This is coming from periodic()!");
+        logger.debug("This is another line coming from periodic();\n");*/
     }
 
     /**
