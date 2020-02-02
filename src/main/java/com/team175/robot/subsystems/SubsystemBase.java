@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SendableRegistry;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import io.github.oblarg.oblog.Loggable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +18,7 @@ import java.util.function.Supplier;
  * automated integrity checking of necessary components and reset of sensor(s). A subsystem must only have one
  * instance, which is implemented by the singleton design pattern (after all, a robot can only have one drivetrain).
  */
-public abstract class SubsystemBase implements Subsystem, Sendable {
+public abstract class SubsystemBase implements Subsystem, Sendable, Loggable {
 
     /**
      * Logger used to document the various actions performed by a subsystem.
@@ -42,19 +43,6 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
         CommandScheduler.getInstance().registerSubsystem(this);
     }
 
-    /**
-     * Associates a {@link Sendable} with this Subsystem.
-     * Also updates the child's name.
-     *
-     * @param name
-     *         name to give child
-     * @param child
-     *         sendable
-     */
-    public void addChild(String name, Sendable child) {
-        SendableRegistry.addLW(child, subsystemName, name);
-    }
-
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.setSmartDashboardType("Subsystem");
@@ -77,16 +65,22 @@ public abstract class SubsystemBase implements Subsystem, Sendable {
                 } else if (rawValue instanceof Boolean) {
                     builder.addBooleanProperty(subKey, (BooleanSupplier) v, null);
                 } else if (rawValue instanceof double[]) {
-                    builder.addDoubleArrayProperty(subKey, v, null);
+                    builder.addDoubleArrayProperty(subKey, (Supplier<double[]>) v, null);
                 } else if (rawValue instanceof boolean[]) {
-                    builder.addBooleanArrayProperty(subKey, v, null);
+                    builder.addBooleanArrayProperty(subKey, (Supplier<boolean[]>) v, null);
                 } else if (rawValue instanceof String[]) {
-                    builder.addStringArrayProperty(subKey, v, null);
+                    builder.addStringArrayProperty(subKey, (Supplier<String[]>) v, null);
                 } else {
                     builder.addStringProperty(subKey, rawValue::toString, null);
                 }
             });
         }*/
+    }
+
+    @Override
+    public void periodic() {
+        /*logger.debug("This is coming from periodic()!");
+        logger.debug("This is another line coming from periodic();\n");*/
     }
 
     /**

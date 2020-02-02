@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team175.robot.utils.DriveHelper;
+import io.github.oblarg.oblog.annotations.Log;
 
 /**
  * Drive represents the drivetrain of the robot. It is composed of 4 cim motors (controlled with 4 Talon SRXs) and a
@@ -90,7 +91,10 @@ public class Drive extends SubsystemBase {
      * Helper method that adds all telemetry data to the telemetry Map.
      */
     private void configureTelemetry() {
-        // telemetry.put("", null);
+        telemetry.put("Left Demand", this::getLeftDemand);
+        telemetry.put("Left Voltage", this::getLeftVoltage);
+        telemetry.put("Right Demand", this::getRightDemand);
+        telemetry.put("Right Voltage", this::getRightVoltage);
     }
 
     public void setOpenLoop(double leftDemand, double rightDemand) {
@@ -108,11 +112,36 @@ public class Drive extends SubsystemBase {
 
     /*public void setHighGear(boolean shift) {
         shifter.set(shift);
+    }*/
+
+    @Log
+    public double getLeftDemand() {
+        return leftMaster.getMotorOutputPercent();
     }
 
-    public boolean isHighGear() {
+    @Log
+    public double getLeftVoltage() {
+        return leftMaster.getMotorOutputVoltage();
+    }
+
+    @Log
+    public double getRightDemand() {
+        return rightMaster.getMotorOutputPercent();
+    }
+
+    @Log
+    public double getRightVoltage() {
+        return rightMaster.getMotorOutputVoltage();
+    }
+
+    /*public boolean isHighGear() {
         return shifter.get();
     }*/
+
+    public void logTest() {
+        logger.warn("I AM WARNING YOU!");
+        logger.error("THIS IS AN ERROR!!!");
+    }
 
     @Override
     public void resetSensors() {
