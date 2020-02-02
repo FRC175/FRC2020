@@ -7,6 +7,8 @@ import com.team175.robot.models.Gains;
 import com.team175.robot.positions.TurretCardinal;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import io.github.oblarg.oblog.annotations.Config;
+import io.github.oblarg.oblog.annotations.Log;
 
 public final class Shooter extends SubsystemBase {
 
@@ -57,6 +59,7 @@ public final class Shooter extends SubsystemBase {
         turret.set(ControlMode.PercentOutput, demand);
     }
 
+    @Config
     public void setTurretPosition(int position) {
         turretSetpoint = position;
         turret.set(ControlMode.Position, turretSetpoint);
@@ -78,6 +81,7 @@ public final class Shooter extends SubsystemBase {
         setTurretHeading(heading);*/
     }
 
+    @Log
     public int getTurretPosition() {
         return turret.getSelectedSensorPosition();
     }

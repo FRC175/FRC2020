@@ -53,34 +53,6 @@ public abstract class SubsystemBase implements Subsystem, Sendable, Loggable {
         builder.addBooleanProperty(".hasCommand", () -> getCurrentCommand() != null, null);
         builder.addStringProperty(".command",
                 () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "none", null);
-
-        /*if (!telemetry.isEmpty()) {
-            // Add data to builder filtered by data type
-            telemetry.forEach((k, v) -> {
-                String subKey = "." + k;
-                var rawValue = v.get();
-                // All consumers are null because data is to be read-only
-                if (rawValue instanceof Double || rawValue instanceof Integer) {
-                    builder.addDoubleProperty(subKey, (DoubleSupplier) v, null);
-                } else if (rawValue instanceof Boolean) {
-                    builder.addBooleanProperty(subKey, (BooleanSupplier) v, null);
-                } else if (rawValue instanceof double[]) {
-                    builder.addDoubleArrayProperty(subKey, (Supplier<double[]>) v, null);
-                } else if (rawValue instanceof boolean[]) {
-                    builder.addBooleanArrayProperty(subKey, (Supplier<boolean[]>) v, null);
-                } else if (rawValue instanceof String[]) {
-                    builder.addStringArrayProperty(subKey, (Supplier<String[]>) v, null);
-                } else {
-                    builder.addStringProperty(subKey, rawValue::toString, null);
-                }
-            });
-        }*/
-    }
-
-    @Override
-    public void periodic() {
-        /*logger.debug("This is coming from periodic()!");
-        logger.debug("This is another line coming from periodic();\n");*/
     }
 
     /**

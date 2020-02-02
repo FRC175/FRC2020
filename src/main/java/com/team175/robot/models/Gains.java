@@ -1,9 +1,12 @@
 package com.team175.robot.models;
 
+import edu.wpi.first.wpilibj.Sendable;
+import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
+
 /**
  * Gains holds PID gains (Kp, Ki, Kd, Kf) and acceleration and cruise velocity data for closed loop control.
  */
-public class Gains {
+public class Gains implements Sendable {
 
     /**
      * PIDF gains
@@ -55,4 +58,13 @@ public class Gains {
         return new double[]{kP, kI, kD, kF, acceleration, cruiseVelocity};
     }
 
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        builder.addDoubleProperty("kP", () -> kP, null);
+        builder.addDoubleProperty("kI", () -> kI, null);
+        builder.addDoubleProperty("kD", () -> kD, null);
+        builder.addDoubleProperty("kF", () -> kF, null);
+        builder.addDoubleProperty("Acceleration", () -> acceleration, null);
+        builder.addDoubleProperty("Cruise Velocity", () -> cruiseVelocity, null);
+    }
 }

@@ -5,6 +5,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import io.github.oblarg.oblog.annotations.Log;
 
 /**
  * Limelight represents the limelight vision processing unit on the robot.
@@ -29,8 +30,6 @@ public final class Limelight extends SubsystemBase {
         rotationController.setTolerance(ROTATION_DEADBAND);
         // The range of the limelight is between -30 degrees and 30 degrees
         rotationController.enableContinuousInput(-30, 30);
-
-        configureTelemetry();
     }
 
     public static Limelight getInstance() {
@@ -41,22 +40,16 @@ public final class Limelight extends SubsystemBase {
         return instance;
     }
 
-    private void configureTelemetry() {
-        telemetry.put("IsTargetDetected", this::isTargetDetected);
-        telemetry.put("HorizontalOffset", this::getHorizontalOffset);
-        telemetry.put("Rotation", this::getRotation);
-        telemetry.put("PipelineNum", this::getPipeline);
-        telemetry.put("CalculatedRotation", this::getRotation);
-    }
-
     private void setPipeline(int pipelineNum) {
         table.getEntry("pipeline").setNumber(pipelineNum);
     }
 
+    @Log
     private boolean isTargetDetected() {
         return table.getEntry("tv").getDouble(0) == 1;
     }
 
+    @Log
     private double getHorizontalOffset() {
         return table.getEntry("tx").getDouble(0);
     }
@@ -106,10 +99,12 @@ public final class Limelight extends SubsystemBase {
         setPipeline(2);
     }
 
+    @Log
     public double getRotation() {
         return rotation;
     }
 
+    @Log
     public boolean isAtTarget() {
         return isAtTarget;
     }

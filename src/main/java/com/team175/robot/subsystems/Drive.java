@@ -15,7 +15,7 @@ public class Drive extends SubsystemBase {
 
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
     private final DriveHelper driveHelper;
-    // private final SimpleDoubleSolenoid shifter;
+    // private final DoubleSolenoid shifter;
 
     private static final int LEFT_MASTER_PORT = 1;
     private static final int LEFT_SLAVE_PORT = 2;
@@ -42,10 +42,9 @@ public class Drive extends SubsystemBase {
 
         driveHelper = new DriveHelper(leftMaster, rightMaster);
 
-        /*shifter = new SimpleDoubleSolenoid(SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);*/
+        /*shifter = new DoubleSolenoid(SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);*/
 
         configureTalons();
-        configureTelemetry();
     }
 
     /**
@@ -87,16 +86,6 @@ public class Drive extends SubsystemBase {
         rightSlave.setInverted(InvertType.FollowMaster);
     }
 
-    /**
-     * Helper method that adds all telemetry data to the telemetry Map.
-     */
-    private void configureTelemetry() {
-        telemetry.put("Left Demand", this::getLeftDemand);
-        telemetry.put("Left Voltage", this::getLeftVoltage);
-        telemetry.put("Right Demand", this::getRightDemand);
-        telemetry.put("Right Voltage", this::getRightVoltage);
-    }
-
     public void setOpenLoop(double leftDemand, double rightDemand) {
         leftMaster.set(ControlMode.PercentOutput, leftDemand);
         rightMaster.set(ControlMode.PercentOutput, rightDemand);
@@ -135,13 +124,8 @@ public class Drive extends SubsystemBase {
     }
 
     /*public boolean isHighGear() {
-        return shifter.get();
+        return shifter.get() == DoubleSolenoid.Value.kForward;
     }*/
-
-    public void logTest() {
-        logger.warn("I AM WARNING YOU!");
-        logger.error("THIS IS AN ERROR!!!");
-    }
 
     @Override
     public void resetSensors() {

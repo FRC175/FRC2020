@@ -1,11 +1,20 @@
 package com.team175.robot;
 
-import com.team175.robot.models.AldrinXboxController;
+import com.team175.robot.commands.LockOntoTarget;
+import com.team175.robot.models.AdvancedXboxController;
+import com.team175.robot.models.XboxButton;
+import com.team175.robot.positions.TurretCardinal;
 import com.team175.robot.subsystems.Drive;
+import com.team175.robot.subsystems.Limelight;
+import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import io.github.oblarg.oblog.Logger;
 
 /**
@@ -18,25 +27,33 @@ public class RobotContainer {
 
     // The robot's subsystems and commands are defined here
     private final Drive drive;
-    private final AldrinXboxController controller;
+    private final Limelight limelight;
+    private final Shooter shooter;
+    private final AdvancedXboxController driverController;
+    private final SendableChooser<Command> autoChooser;
     private final Logger oblogLogger;
 
-    private Command autoCommand;
+    private Command autoMode;
 
     private static RobotContainer instance;
 
-    private static final int CONTROLLER_PORT = 0;
+    private static final int DRIVER_CONTROLLER_PORT = 0;
+    private static final double CONTROLLER_DEADBAND = 0.1;
 
     /**
      * The container for the robot.  Contains subsystems, OI devices, and commands.
      */
     private RobotContainer() {
         drive = Drive.getInstance();
-        controller = new AldrinXboxController(CONTROLLER_PORT);
+        limelight = Limelight.getInstance();
+        shooter = Shooter.getInstance();
+        driverController = new AdvancedXboxController(DRIVER_CONTROLLER_PORT, CONTROLLER_DEADBAND);
+        autoChooser = new SendableChooser<>();
         oblogLogger = new Logger();
 
         configureDefaultCommands();
         configureButtonBindings();
+        configureAutoChooser();
         configureOblogLogger();
     }
 
@@ -51,17 +68,13 @@ public class RobotContainer {
     private void configureDefaultCommands() {
         // Arcade Drive
         drive.setDefaultCommand(
-                new FunctionalCommand(
-                        () -> {},
+                new RunCommand(
                         () -> drive.arcadeDrive(
-                                controller.getTriggerAxis(GenericHID.Hand.kRight)
-                                        - controller.getTriggerAxis(GenericHID.Hand.kLeft),
-                                controller.getX(GenericHID.Hand.kLeft)
+                                driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft),
+                                driverController.getX(GenericHID.Hand.kLeft)
                         ),
-                        (interrupted) -> drive.setOpenLoop(0, 0),
-                        () -> false,
                         drive
-                )
+                ).andThen(() -> drive.arcadeDrive(0, 0), drive)
         );
     }
 
@@ -71,7 +84,50 @@ public class RobotContainer {
      * and then passing it to a {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
      */
     private void configureButtonBindings() {
+        // Align to target
+        /*new XboxButton(driverController, AdvancedXboxController.Button.X)
+                .whileHeld(new RotateTurretToTarget(shooter, limelight));*/
+        new XboxButton(driverController, AdvancedXboxController.Button.X)
+                .toggleWhenPressed(new LockOntoTarget(shooter, limelight));
+        // Blink LED
+        new XboxButton(driverController, AdvancedXboxController.Button.Y)
+                .whenPressed(new InstantCommand(limelight::blinkLED, limelight)
+                        .andThen(new WaitCommand(1))
+                        .andThen(limelight::defaultLED, limelight));
+        // Toggle LED
+        /*new XboxButton(driverController, AdvancedXboxController.Button.A)
+                .toggleWhenPressed(new InstantCommand() {
+                    private boolean toggle = true;
 
+                    @Override
+                    public void initialize() {
+                        toggle = !toggle;
+                        limelight.setLED(toggle);
+                    }
+                });*/
+        // Manual Turret Control
+        new XboxButton(driverController, AdvancedXboxController.Button.RIGHT_BUMPER)
+                .whileHeld(new RunCommand(
+                        () -> shooter.setTurretOpenLoop(driverController.getX(GenericHID.Hand.kRight)),
+                        shooter
+                ))
+                .whenReleased(() -> shooter.setTurretOpenLoop(0), shooter);
+        // Turret Cardinals
+        new XboxButton(driverController, AdvancedXboxController.DPad.UP)
+                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.NORTH), shooter);
+        new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
+                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.EAST), shooter);
+        new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
+                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.SOUTH), shooter);
+        new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
+                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.WEST), shooter);
+    }
+
+    private void configureAutoChooser() {
+        autoChooser.setDefaultOption("Do Nothing", null);
+        // autoChooser.addOption();
+        // Add more auto modes here
+        SmartDashboard.putData("Auto Mode Chooser", autoChooser);
     }
 
     private void configureOblogLogger() {
@@ -87,9 +143,8 @@ public class RobotContainer {
      *
      * @return the command to run in autonomous
      */
-    public Command getAutonomousCommand() {
-        // An ExampleCommand will run in autonomous
-        return autoCommand;
+    public Command getAutoMode() {
+        return autoMode = autoChooser.getSelected();
     }
 
 }
