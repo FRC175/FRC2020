@@ -9,10 +9,11 @@ import org.slf4j.LoggerFactory;
  */
 public final class LogCommand extends CommandBase {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
+    private final Logger logger;
     private final String message;
 
     public LogCommand(String message) {
+        logger = LoggerFactory.getLogger(getClass().getSimpleName());
         this.message = message;
     }
 

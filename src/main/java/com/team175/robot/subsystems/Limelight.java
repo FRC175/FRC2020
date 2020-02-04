@@ -13,6 +13,7 @@ import io.github.oblarg.oblog.annotations.Log;
 public final class Limelight extends SubsystemBase {
 
     private final NetworkTable table;
+    @Log
     private final PIDController rotationController;
 
     private double rotation;
@@ -120,12 +121,6 @@ public final class Limelight extends SubsystemBase {
             isAtTarget = true;
             logger.warn("NO TARGET DETECTED!!! ROTATE THE TURRET TO A CARDINAL SO THAT IT SEES THE TARGET.");
         }
-    }
-
-    @Override
-    public void periodic() {
-        SmartDashboard.putNumber("Limelight Position", getHorizontalOffset());
-        SmartDashboard.putNumber("Limelight Setpoint", ROTATION_SETPOINT);
     }
 
     @Override

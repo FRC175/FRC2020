@@ -9,13 +9,13 @@ import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.EventImportance;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
-import io.github.oblarg.oblog.Logger;
+import edu.wpi.first.wpilibj2.command.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RobotContainer is where the bulk of the robot should be declared.  Since Command-based is a "declarative" paradigm,
@@ -31,7 +31,7 @@ public class RobotContainer {
     private final Shooter shooter;
     private final AdvancedXboxController driverController;
     private final SendableChooser<Command> autoChooser;
-    private final Logger oblogLogger;
+    private final Logger logger;
 
     private Command autoMode;
 
@@ -49,12 +49,12 @@ public class RobotContainer {
         shooter = Shooter.getInstance();
         driverController = new AdvancedXboxController(DRIVER_CONTROLLER_PORT, CONTROLLER_DEADBAND);
         autoChooser = new SendableChooser<>();
-        oblogLogger = new Logger();
+        logger = LoggerFactory.getLogger(getClass().getSimpleName());
 
         configureDefaultCommands();
         configureButtonBindings();
         configureAutoChooser();
-        configureOblogLogger();
+        configureLogging();
     }
 
     public static RobotContainer getInstance() {
@@ -130,12 +130,27 @@ public class RobotContainer {
         SmartDashboard.putData("Auto Mode Chooser", autoChooser);
     }
 
-    private void configureOblogLogger() {
-        Logger.configureLoggingAndConfig(this, false);
-    }
+    private void configureLogging() {
+        io.github.oblarg.oblog.Logger.configureLoggingAndConfig(this, false);
 
-    public void updateOblogLogger() {
-        oblogLogger.updateEntries();
+        CommandScheduler.getInstance().onCommandInitialize(
+                command -> {
+                    Shuffleboard.addEventMarker("Command initialized.", command.getName(), EventImportance.kNormal);
+                    logger.debug("{} initialized.", command.getName());
+                }
+        );
+        CommandScheduler.getInstance().onCommandInterrupt(
+                command -> {
+                    Shuffleboard.addEventMarker("Command interrupted.", command.getName(), EventImportance.kNormal);
+                    logger.debug("{} interrupted.", command.getName());
+                }
+        );
+        CommandScheduler.getInstance().onCommandFinish(
+                command -> {
+                    Shuffleboard.addEventMarker("Command finished.", command.getName(), EventImportance.kNormal);
+                    logger.debug("{} finished.", command.getName());
+                }
+        );
     }
 
     /**
