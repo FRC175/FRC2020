@@ -25,9 +25,8 @@ public final class Shooter extends SubsystemBase {
 
     private Shooter() {
         turret = new TalonSRX(TURRET_PORT);
-        turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
-
         configureTalons();
+        turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
     }
 
     public static Shooter getInstance() {
@@ -51,11 +50,11 @@ public final class Shooter extends SubsystemBase {
         // setTurretAngle(0);
     }
 
-    private int degreesToPosition(Rotation2d heading) {
+    private int degreesToCounts(Rotation2d heading) {
         return (int) (heading.getDegrees() * (COUNTS_PER_REVOLUTION / 360.0));
     }
 
-    private Rotation2d positionToDegrees(double position) {
+    private Rotation2d countsToDegrees(double position) {
         return Rotation2d.fromDegrees(position * (360.0 / COUNTS_PER_REVOLUTION));
     }
 
@@ -70,7 +69,7 @@ public final class Shooter extends SubsystemBase {
     }
 
     public void setTurretHeading(Rotation2d heading) {
-        setTurretPosition(degreesToPosition(heading));
+        setTurretPosition(degreesToCounts(heading));
     }
 
     @Config
@@ -88,7 +87,7 @@ public final class Shooter extends SubsystemBase {
     }
 
     public Rotation2d getTurretHeading() {
-        return positionToDegrees(getTurretPosition());
+        return countsToDegrees(getTurretPosition());
     }
 
     @Log
@@ -98,6 +97,7 @@ public final class Shooter extends SubsystemBase {
 
     @Override
     public void resetSensors() {
+        turret.setSelectedSensorPosition(0);
     }
 
     @Override

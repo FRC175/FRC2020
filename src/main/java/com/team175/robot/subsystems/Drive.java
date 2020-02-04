@@ -113,6 +113,11 @@ public class Drive extends SubsystemBase {
         return leftMaster.getMotorOutputVoltage();
     }
 
+    /*@Log
+    public int getLeftVelocity() {
+        return leftMaster.getSelectedSensorVelocity();
+    }*/
+
     @Log
     public double getRightDemand() {
         return rightMaster.getMotorOutputPercent();
@@ -123,7 +128,14 @@ public class Drive extends SubsystemBase {
         return rightMaster.getMotorOutputVoltage();
     }
 
-    /*public boolean isHighGear() {
+    /*@Log
+    public int getRightVelocity() {
+        return rightMaster.getSelectedSensorVelocity();
+    }*/
+
+    /*
+    @Log
+    public boolean isHighGear() {
         return shifter.get() == DoubleSolenoid.Value.kForward;
     }*/
 

@@ -112,6 +112,9 @@ public class RobotContainer {
                         shooter
                 ))
                 .whenReleased(() -> shooter.setTurretOpenLoop(0), shooter);
+        // Reset Shooter sensors
+        new XboxButton(driverController, AdvancedXboxController.Button.LEFT_BUMPER)
+                .whenPressed(shooter::resetSensors, shooter);
         // Turret Cardinals
         new XboxButton(driverController, AdvancedXboxController.DPad.UP)
                 .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.NORTH), shooter);

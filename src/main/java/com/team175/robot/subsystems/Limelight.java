@@ -5,6 +5,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import io.github.oblarg.oblog.annotations.Config;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
@@ -41,6 +42,7 @@ public final class Limelight extends SubsystemBase {
         return instance;
     }
 
+    @Config
     private void setPipeline(int pipelineNum) {
         table.getEntry("pipeline").setNumber(pipelineNum);
     }
@@ -67,6 +69,7 @@ public final class Limelight extends SubsystemBase {
         return table.getEntry("ts").getDouble(0);
     }
 
+    @Log
     private int getPipeline() {
         return (int) table.getEntry("getpipe").getDouble(0);
     }
