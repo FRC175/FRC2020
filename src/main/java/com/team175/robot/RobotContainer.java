@@ -1,6 +1,7 @@
 package com.team175.robot;
 
 import com.team175.robot.commands.LockOntoTarget;
+import com.team175.robot.commands.RotateTurretToFieldOrientedCardinal;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
 import com.team175.robot.positions.TurretCardinal;
@@ -116,14 +117,22 @@ public class RobotContainer {
         new XboxButton(driverController, AdvancedXboxController.Button.LEFT_BUMPER)
                 .whenPressed(shooter::resetSensors, shooter);
         // Turret Cardinals
-        new XboxButton(driverController, AdvancedXboxController.DPad.UP)
+        /*new XboxButton(driverController, AdvancedXboxController.DPad.UP)
                 .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.NORTH), shooter);
         new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
                 .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.EAST), shooter);
         new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
                 .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.SOUTH), shooter);
         new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
-                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.WEST), shooter);
+                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.WEST), shooter);*/
+        /*new XboxButton(driverController, AdvancedXboxController.DPad.UP)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.NORTH));
+        new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.EAST));
+        new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.SOUTH));
+        new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.WEST));*/
     }
 
     private void configureAutoChooser() {

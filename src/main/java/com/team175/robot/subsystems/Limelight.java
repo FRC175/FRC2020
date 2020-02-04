@@ -15,6 +15,7 @@ public final class Limelight extends SubsystemBase {
 
     private final NetworkTable table;
     @Log
+    @Config
     private final PIDController rotationController;
 
     private double rotation;
@@ -47,33 +48,6 @@ public final class Limelight extends SubsystemBase {
         table.getEntry("pipeline").setNumber(pipelineNum);
     }
 
-    @Log
-    private boolean isTargetDetected() {
-        return table.getEntry("tv").getDouble(0) == 1;
-    }
-
-    @Log
-    private double getHorizontalOffset() {
-        return table.getEntry("tx").getDouble(0);
-    }
-
-    private double getVerticalOffset() {
-        return table.getEntry("ty").getDouble(0);
-    }
-
-    private double getTargetArea() {
-        return table.getEntry("ta").getDouble(0);
-    }
-
-    private double getSkew() {
-        return table.getEntry("ts").getDouble(0);
-    }
-
-    @Log
-    private int getPipeline() {
-        return (int) table.getEntry("getpipe").getDouble(0);
-    }
-
     public void setLED(boolean enable) {
         table.getEntry("ledMode").setNumber(enable ? 3 : 1);
     }
@@ -101,6 +75,33 @@ public final class Limelight extends SubsystemBase {
     public void setTrackingMode() {
         // Zoomed tracking mode
         setPipeline(2);
+    }
+
+    @Log
+    private boolean isTargetDetected() {
+        return table.getEntry("tv").getDouble(0) == 1;
+    }
+
+    @Log
+    private double getHorizontalOffset() {
+        return table.getEntry("tx").getDouble(0);
+    }
+
+    private double getVerticalOffset() {
+        return table.getEntry("ty").getDouble(0);
+    }
+
+    private double getTargetArea() {
+        return table.getEntry("ta").getDouble(0);
+    }
+
+    private double getSkew() {
+        return table.getEntry("ts").getDouble(0);
+    }
+
+    @Log
+    private int getPipeline() {
+        return (int) table.getEntry("getpipe").getDouble(0);
     }
 
     @Log

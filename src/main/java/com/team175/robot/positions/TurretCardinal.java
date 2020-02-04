@@ -5,9 +5,9 @@ import edu.wpi.first.wpilibj.geometry.Rotation2d;
 public enum TurretCardinal {
 
     NORTH(Rotation2d.fromDegrees(0)),
-    EAST(Rotation2d.fromDegrees(90)),
+    EAST(Rotation2d.fromDegrees(-90)),
     SOUTH(Rotation2d.fromDegrees(180)),
-    WEST(Rotation2d.fromDegrees(270));
+    WEST(Rotation2d.fromDegrees(90));
 
     private final Rotation2d heading;
 
