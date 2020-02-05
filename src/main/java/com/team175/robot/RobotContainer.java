@@ -4,6 +4,9 @@ import com.team175.robot.commands.LockOntoTarget;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
 import com.team175.robot.positions.TurretCardinal;
+import com.team175.robot.subsystems.Ball;
+import com.team175.robot.subsystems.Climb;
+import com.team175.robot.subsystems.ControlPanel;
 import com.team175.robot.subsystems.Drive;
 import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
@@ -29,6 +32,9 @@ public class RobotContainer {
     private final Drive drive;
     private final Limelight limelight;
     private final Shooter shooter;
+    private final ControlPanel controlPanel;
+    private final Ball ball;
+    private final Climb climb;
     private final AdvancedXboxController driverController;
     private final SendableChooser<Command> autoChooser;
     private final Logger logger;
@@ -50,6 +56,10 @@ public class RobotContainer {
         driverController = new AdvancedXboxController(DRIVER_CONTROLLER_PORT, CONTROLLER_DEADBAND);
         autoChooser = new SendableChooser<>();
         logger = LoggerFactory.getLogger(getClass().getSimpleName());
+
+        controlPanel = ControlPanel.getInstance();
+        ball = Ball.getInstance();
+        climb = Climb.getInstance();
 
         configureDefaultCommands();
         configureButtonBindings();
@@ -76,6 +86,42 @@ public class RobotContainer {
                         drive
                 ).andThen(() -> drive.arcadeDrive(0, 0), drive)
         );
+
+        shooter.setDefaultCommand(
+                new RunCommand(
+                        () -> shooter.setOpenLoop(
+                                driverController.getAButton() ? 1.0 : 0
+                        ),
+                        shooter
+                )
+        );
+
+        controlPanel.setDefaultCommand(
+                new RunCommand(
+                        () -> controlPanel.setOpenLoop(
+                                driverController.getBButton() ? 1.0 : 0
+                        ),
+                        controlPanel
+                )
+        );
+
+        ball.setDefaultCommand(
+                new RunCommand(
+                        () -> ball.setOpenLoop(
+                                driverController.getXButton() ? 1.0 : 0
+                        ),
+                        ball
+                )
+        );
+
+        climb.setDefaultCommand(
+                new RunCommand(
+                        () -> climb.setOpenLoop(
+                                driverController.getYButton() ? 1.0 : 0
+                        ),
+                        climb
+                )
+        );
     }
 
     /**
@@ -87,13 +133,13 @@ public class RobotContainer {
         // Align to target
         /*new XboxButton(driverController, AdvancedXboxController.Button.X)
                 .whileHeld(new RotateTurretToTarget(shooter, limelight));*/
-        new XboxButton(driverController, AdvancedXboxController.Button.X)
-                .toggleWhenPressed(new LockOntoTarget(shooter, limelight));
+        /*new XboxButton(driverController, AdvancedXboxController.Button.X)
+                .toggleWhenPressed(new LockOntoTarget(shooter, limelight));*/
         // Blink LED
-        new XboxButton(driverController, AdvancedXboxController.Button.Y)
+        /*new XboxButton(driverController, AdvancedXboxController.Button.Y)
                 .whenPressed(new InstantCommand(limelight::blinkLED, limelight)
                         .andThen(new WaitCommand(1))
-                        .andThen(limelight::defaultLED, limelight));
+                        .andThen(limelight::defaultLED, limelight));*/
         // Toggle LED
         /*new XboxButton(driverController, AdvancedXboxController.Button.A)
                 .toggleWhenPressed(new InstantCommand() {

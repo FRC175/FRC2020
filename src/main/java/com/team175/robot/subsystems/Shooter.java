@@ -3,6 +3,7 @@ package com.team175.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -12,12 +13,17 @@ import io.github.oblarg.oblog.annotations.Log;
 public final class Shooter extends SubsystemBase {
 
     private final TalonSRX turret;
+    private final VictorSPX shooterMaster;
+    private final TalonSRX shooterSlave;
     @Log
     private final MotionMagicGains turretGains;
 
     private int turretSetpoint;
 
-    private static final int TURRET_PORT = 5;
+    private static final int TURRET_PORT = 11;
+    private static final int SHOOTER_MASTER_PORT = 12;
+    private static final int SHOOTER_SLAVE_PORT = 13;
+
     private static final int TURRET_DEADBAND = 5;
     private static final int COUNTS_PER_REVOLUTION = 4096; // TODO: Fix
 
@@ -25,6 +31,8 @@ public final class Shooter extends SubsystemBase {
 
     private Shooter() {
         turret = new TalonSRX(TURRET_PORT);
+        shooterMaster = new VictorSPX(SHOOTER_MASTER_PORT);
+        shooterSlave = new TalonSRX(SHOOTER_SLAVE_PORT);
         configureTalons();
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
     }
@@ -46,8 +54,18 @@ public final class Shooter extends SubsystemBase {
         // TODO: Comment out in real robot
         turret.setSelectedSensorPosition(0);
 
+        shooterMaster.configFactoryDefault();
+
+        shooterSlave.configFactoryDefault();
+        shooterSlave.follow(shooterMaster);
+
         // Homing
         // setTurretAngle(0);
+    }
+
+    public void setOpenLoop(double demand) {
+        turret.set(ControlMode.PercentOutput, demand);
+        shooterMaster.set(ControlMode.PercentOutput, demand);
     }
 
     private int degreesToCounts(Rotation2d heading) {
