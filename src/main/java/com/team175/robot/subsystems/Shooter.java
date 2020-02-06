@@ -12,8 +12,8 @@ import io.github.oblarg.oblog.annotations.Log;
 public final class Shooter extends SubsystemBase {
 
     private final TalonSRX turret;
-    @Log
-    @Config
+    /*@Log
+    @Config*/
     private final MotionMagicGains turretGains;
 
     private int turretSetpoint;
@@ -27,7 +27,7 @@ public final class Shooter extends SubsystemBase {
     private Shooter() {
         turret = new TalonSRX(TURRET_PORT);
         configureTalons();
-        turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
+        turretGains = new MotionMagicGains(10.1, 0, 0, 0, 0, 0, turret);
     }
 
     public static Shooter getInstance() {
@@ -41,12 +41,12 @@ public final class Shooter extends SubsystemBase {
     private void configureTalons() {
         // Configuration
         turret.configFactoryDefault();
-        turret.setInverted(true);
+        turret.setInverted(false);
         turret.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
-        turret.setSensorPhase(false);
+        turret.setSensorPhase(true);
         // TODO: Comment out in real robot
         turret.setSelectedSensorPosition(0);
-        turret.configAllowableClosedloopError(0, degreesToCounts(TURRET_DEADBAND));
+        // turret.configAllowableClosedloopError(0, degreesToCounts(TURRET_DEADBAND));
 
         // Homing
         // setTurretAngle(0);
@@ -61,7 +61,7 @@ public final class Shooter extends SubsystemBase {
     }
 
     public void setTurretOpenLoop(double demand) {
-        turret.set(ControlMode.PercentOutput, demand);
+        turret.set(ControlMode.PercentOutput, -demand);
     }
 
     @Config

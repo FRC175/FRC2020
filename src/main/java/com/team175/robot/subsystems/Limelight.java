@@ -14,8 +14,8 @@ import io.github.oblarg.oblog.annotations.Log;
 public final class Limelight extends SubsystemBase {
 
     private final NetworkTable table;
-    @Log
-    @Config
+    /*@Log
+    @Config*/
     private final PIDController rotationController;
 
     private double rotation;

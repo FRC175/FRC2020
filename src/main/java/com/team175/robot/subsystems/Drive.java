@@ -45,7 +45,7 @@ public class Drive extends SubsystemBase {
         leftSlave = new TalonSRX(LEFT_SLAVE_PORT);
         rightMaster = new TalonSRX(RIGHT_MASTER_PORT);
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
-        pigeon = new PigeonIMU(leftSlave); // TODO: FIX
+        pigeon = new PigeonIMU(rightSlave);
         configureTalons();
         configurePigeon();
 
