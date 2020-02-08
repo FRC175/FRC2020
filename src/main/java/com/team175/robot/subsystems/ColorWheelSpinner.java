@@ -25,7 +25,7 @@ public final class ColorWheelSpinner extends SubsystemBase {
     private static final Color BLUE_TARGET = ColorMatch.makeColor(0.143, 0.427, 0.429);
     private static final Color GREEN_TARGET = ColorMatch.makeColor(0.197, 0.561, 0.240);
     private static final Color RED_TARGET = ColorMatch.makeColor(0.415, 0.412, 0.185);
-    private static final Color YELLOW_TARGET = ColorMatch.makeColor(0.361, 0.524, 0.113);
+    private static final Color YELLOW_TARGET = ColorMatch.makeColor(0.300, 0.529, 0.170);
 
     private static ColorWheelSpinner instance;
 
