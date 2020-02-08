@@ -61,7 +61,7 @@ public final class Shooter extends SubsystemBase {
     }
 
     public void setTurretOpenLoop(double demand) {
-        turret.set(ControlMode.PercentOutput, -demand);
+        turret.set(ControlMode.PercentOutput, demand);
     }
 
     @Config

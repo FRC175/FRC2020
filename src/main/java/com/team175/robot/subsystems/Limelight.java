@@ -23,7 +23,7 @@ public final class Limelight extends SubsystemBase {
 
     public static final int ROTATION_SETPOINT = 0; // Target at the center of the limelight
     private static final int ROTATION_DEADBAND = 2; // Degrees
-    private static final Gains ROTATION_GAINS = new Gains(-0.075, 0, 0);
+    private static final Gains ROTATION_GAINS = new Gains(0.075, 0, 0.15);
 
     private static Limelight instance;
 
@@ -43,7 +43,6 @@ public final class Limelight extends SubsystemBase {
         return instance;
     }
 
-    @Config
     private void setPipeline(int pipelineNum) {
         table.getEntry("pipeline").setNumber(pipelineNum);
     }

@@ -109,7 +109,7 @@ public class RobotContainer {
         // Manual Turret Control
         new XboxButton(driverController, AdvancedXboxController.Button.RIGHT_BUMPER)
                 .whileHeld(new RunCommand(
-                        () -> shooter.setTurretOpenLoop(driverController.getX(GenericHID.Hand.kRight)),
+                        () -> shooter.setTurretOpenLoop(-driverController.getX(GenericHID.Hand.kRight)),
                         shooter
                 ))
                 .whenReleased(() -> shooter.setTurretOpenLoop(0), shooter);
