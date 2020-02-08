@@ -12,9 +12,8 @@ import io.github.oblarg.oblog.annotations.Log;
 
 public final class Shooter extends SubsystemBase {
 
-    private final TalonSRX turret;
-    private final VictorSPX shooterMaster;
-    private final TalonSRX shooterSlave;
+    private final TalonSRX turret, shooterMaster;
+    private final VictorSPX shooterSlave;
     @Log
     private final MotionMagicGains turretGains;
 
@@ -31,8 +30,8 @@ public final class Shooter extends SubsystemBase {
 
     private Shooter() {
         turret = new TalonSRX(TURRET_PORT);
-        shooterMaster = new VictorSPX(SHOOTER_MASTER_PORT);
-        shooterSlave = new TalonSRX(SHOOTER_SLAVE_PORT);
+        shooterMaster = new TalonSRX(SHOOTER_MASTER_PORT);
+        shooterSlave = new VictorSPX(SHOOTER_SLAVE_PORT);
         configureTalons();
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
     }
@@ -61,11 +60,6 @@ public final class Shooter extends SubsystemBase {
 
         // Homing
         // setTurretAngle(0);
-    }
-
-    public void setOpenLoop(double demand) {
-        turret.set(ControlMode.PercentOutput, demand);
-        shooterMaster.set(ControlMode.PercentOutput, demand);
     }
 
     private int degreesToCounts(Rotation2d heading) {
@@ -99,6 +93,10 @@ public final class Shooter extends SubsystemBase {
         setTurretHeading(cardinal.toRotation2d());
     }
 
+    public void setShooterOpenLoop(double demand) {
+        shooterMaster.set(ControlMode.PercentOutput, demand);
+    }
+
     @Log
     public int getTurretPosition() {
         return turret.getSelectedSensorPosition();
@@ -111,6 +109,11 @@ public final class Shooter extends SubsystemBase {
     @Log
     private double getLoggableTurretHeading() {
         return getTurretHeading().getDegrees();
+    }
+
+    @Log
+    private double getShooterDemand() {
+        return shooterMaster.getMotorOutputPercent();
     }
 
     @Override

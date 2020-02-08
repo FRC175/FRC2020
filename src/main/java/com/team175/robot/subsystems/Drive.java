@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team175.robot.utils.DriveHelper;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
@@ -11,18 +12,19 @@ import io.github.oblarg.oblog.annotations.Log;
  * Pigeon gyro. This class is packed with documentation to better understand design choices and robot programming in
  * general.
  */
-public class Drive extends SubsystemBase {
+public final class Drive extends SubsystemBase {
 
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
     private final DriveHelper driveHelper;
-    // private final DoubleSolenoid shifter;
+    private final DoubleSolenoid shifter;
 
+    private static final int PCM_PORT = 17;
     private static final int LEFT_MASTER_PORT = 1;
     private static final int LEFT_SLAVE_PORT = 2;
     private static final int RIGHT_MASTER_PORT = 3;
     private static final int RIGHT_SLAVE_PORT = 4;
-    // private static final int SHIFTER_FORWARD_CHANNEL = 0;
-    // private static final int SHIFTER_REVERSE_CHANNEL = 0;
+    private static final int SHIFTER_FORWARD_CHANNEL = 0;
+    private static final int SHIFTER_REVERSE_CHANNEL = 0;
 
     /**
      * The single instance of {@link Drive} used to implement the "singleton" design pattern. A description of the
@@ -39,10 +41,8 @@ public class Drive extends SubsystemBase {
         leftSlave = new TalonSRX(LEFT_SLAVE_PORT);
         rightMaster = new TalonSRX(RIGHT_MASTER_PORT);
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
-
         driveHelper = new DriveHelper(leftMaster, rightMaster);
-
-        /*shifter = new DoubleSolenoid(SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);*/
+        shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
 
         configureTalons();
     }
@@ -99,9 +99,9 @@ public class Drive extends SubsystemBase {
         driveHelper.cheesyDrive(throttle, turn, isQuickTurn, true);
     }
 
-    /*public void setHighGear(boolean shift) {
-        shifter.set(shift);
-    }*/
+    public void setHighGear(boolean enable) {
+        shifter.set(enable ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+    }
 
     @Log
     public double getLeftDemand() {
@@ -133,11 +133,10 @@ public class Drive extends SubsystemBase {
         return rightMaster.getSelectedSensorVelocity();
     }*/
 
-    /*
     @Log
     public boolean isHighGear() {
         return shifter.get() == DoubleSolenoid.Value.kForward;
-    }*/
+    }
 
     @Override
     public void resetSensors() {
