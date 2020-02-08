@@ -19,12 +19,12 @@ public final class Drive extends SubsystemBase {
     private final DoubleSolenoid shifter;
 
     private static final int PCM_PORT = 17;
-    private static final int LEFT_MASTER_PORT = 1;
-    private static final int LEFT_SLAVE_PORT = 2;
-    private static final int RIGHT_MASTER_PORT = 3;
-    private static final int RIGHT_SLAVE_PORT = 4;
+    private static final int LEFT_SLAVE_PORT = 1;
+    private static final int LEFT_MASTER_PORT = 2;
+    private static final int RIGHT_SLAVE_PORT = 3;
+    private static final int RIGHT_MASTER_PORT = 4;
     private static final int SHIFTER_FORWARD_CHANNEL = 0;
-    private static final int SHIFTER_REVERSE_CHANNEL = 0;
+    private static final int SHIFTER_REVERSE_CHANNEL = 1;
 
     /**
      * The single instance of {@link Drive} used to implement the "singleton" design pattern. A description of the

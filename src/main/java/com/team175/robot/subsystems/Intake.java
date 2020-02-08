@@ -14,8 +14,8 @@ public final class Intake extends SubsystemBase {
     private static final int ROLLER_PORT = 6;
     private static final int INDEXER_HORIZONTAL_PORT = 8;
     private static final int INDEXER_VERTICAL_PORT = 9;
-    private static final int DEPLOYER_FORWARD_CHANNEL = 2;
-    private static final int DEPLOYER_REVERSE_CHANNEL = 3;
+    private static final int DEPLOYER_FORWARD_CHANNEL = 4;
+    private static final int DEPLOYER_REVERSE_CHANNEL = 5;
 
     private static Intake instance;
 

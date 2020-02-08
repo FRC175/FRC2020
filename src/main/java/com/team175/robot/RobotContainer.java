@@ -95,23 +95,42 @@ public class RobotContainer {
     private void configureButtonBindings() {
         // Deploy/retract intake
         new XboxButton(operatorController, AdvancedXboxController.Button.B)
-                .whenPressed(() -> intake.deploy(intake.isDeployed()), intake);
+                .whenPressed(() -> intake.deploy(!intake.isDeployed()), intake);
 
         // Intake control
         new XboxButton(operatorController, AdvancedXboxController.Button.A)
                 .whileHeld(() -> intake.setRollerOpenLoop(1), intake)
-                .whenPressed(() -> intake.setRollerOpenLoop(1), intake);
+                .whenPressed(() -> intake.setIndexerOpenLoop(1), intake);
 
         // Indexer toggle
-        /*new XboxButton(operatorController, AdvancedXboxController.Button.X)
-                .toggleWhenPressed(() -> intake.setIntakeOpenLoop(1), intake);*/
+        new XboxButton(operatorController, AdvancedXboxController.Button.X)
+                .toggleWhenPressed(new FunctionalCommand(
+                        () -> {},
+                        () -> intake.setIndexerOpenLoop(1),
+                        (finished) -> intake.setIndexerOpenLoop(0),
+                        () -> false,
+                        intake
+                ));
+
+        new XboxButton(operatorController, AdvancedXboxController.Button.Y)
+                .whileHeld(() -> {
+                        intake.setIndexerOpenLoop(-1);
+                        intake.setRollerOpenLoop(-1);
+                }, intake)
+                .whenReleased(() -> {
+                        intake.setIndexerOpenLoop(0);
+                        intake.setRollerOpenLoop(0);
+                }, intake);
+                
 
         // Deploy/retract color wheel device
-        new XboxButton(operatorController, AdvancedXboxController.Button.Y)
-                .whenPressed(() -> colorWheelSpinner.deploy(colorWheelSpinner.isDeployed()), colorWheelSpinner);
+        new XboxButton(operatorController, AdvancedXboxController.Button.LEFT_BUMPER)
+                .whenPressed(() -> colorWheelSpinner.deploy(!colorWheelSpinner.isDeployed()), colorWheelSpinner);
 
         // Manual color wheel control
-        // new XboxButton(driverController, )
+        new XboxButton(driverController, AdvancedXboxController.Button.B)
+                .whileHeld(() -> colorWheelSpinner.setOpenLoop(1), colorWheelSpinner)
+                .whenReleased(() -> colorWheelSpinner.setOpenLoop(0), colorWheelSpinner);
 
         // Shift gears
         new XboxButton(driverController, AdvancedXboxController.Button.X)
@@ -121,14 +140,26 @@ public class RobotContainer {
         // Manual Turret Control
         new XboxButton(operatorController, AdvancedXboxController.Button.RIGHT_BUMPER)
                 .whileHeld(new RunCommand(
-                        () -> shooter.setTurretOpenLoop(driverController.getX(GenericHID.Hand.kRight)),
+                        () -> shooter.setTurretOpenLoop(operatorController.getX(GenericHID.Hand.kRight)),
                         shooter
                 ))
                 .whenReleased(() -> shooter.setTurretOpenLoop(0), shooter);
 
+        // Manual winch
+        new XboxButton(driverController, AdvancedXboxController.Button.RIGHT_BUMPER)
+                .whileHeld(new RunCommand(
+                        () -> climber.setWinchOpenLoop(driverController.getY(GenericHID.Hand.kRight)),
+                        climber
+                ))
+                .whenReleased(() -> climber.setWinchOpenLoop(0), climber);
+
+        // Deploy/retract winch
+        new XboxButton(driverController, AdvancedXboxController.Button.LEFT_BUMPER)
+                .whenPressed(() -> climber.deploy(!climber.isDeployed()), climber);
+
         // Reset Shooter sensors
-        new XboxButton(operatorController, AdvancedXboxController.Button.LEFT_BUMPER)
-                .whenPressed(shooter::resetSensors, shooter);
+        // new XboxButton(operatorController, AdvancedXboxController.Button.LEFT_BUMPER)
+                // .whenPressed(shooter::resetSensors, shooter);
 
         // Turret Cardinals
         /*new XboxButton(driverController, AdvancedXboxController.DPad.UP)

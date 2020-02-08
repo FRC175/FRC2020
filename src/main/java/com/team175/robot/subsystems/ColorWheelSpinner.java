@@ -12,8 +12,8 @@ public final class ColorWheelSpinner extends SubsystemBase {
 
     private static final int PCM_PORT = 17;
     private static final int SPINNER_PORT = 5;
-    private static final int DEPLOYER_FORWARD_CHANNEL = 0;
-    private static final int DEPLOYER_REVERSE_CHANNEL = 1;
+    private static final int DEPLOYER_FORWARD_CHANNEL = 2;
+    private static final int DEPLOYER_REVERSE_CHANNEL = 3;
 
     private static ColorWheelSpinner instance;
 
