@@ -106,7 +106,10 @@ public class RobotContainer {
         new XboxButton(operatorController, AdvancedXboxController.Button.X)
                 .toggleWhenPressed(new FunctionalCommand(
                         () -> {},
-                        () -> intake.setIndexerOpenLoop(1),
+                        () -> {
+                                intake.setIndexerOpenLoop(1);
+                                intake.senseObject();
+                        },
                         (finished) -> intake.setIndexerOpenLoop(0),
                         () -> false,
                         intake
@@ -170,6 +173,10 @@ public class RobotContainer {
                 .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.SOUTH), shooter);
         new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
                 .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.WEST), shooter);*/
+
+        new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
+                .whenPressed(() ->  shooter.setServoPosition(1), shooter)
+                .whenReleased(() ->  shooter.setServoPosition(0), shooter);
     }
 
     private void configureAutoChooser() {

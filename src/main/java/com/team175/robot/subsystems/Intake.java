@@ -2,7 +2,10 @@ package com.team175.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.PWM;
 import io.github.oblarg.oblog.annotations.Log;
 
 public final class Intake extends SubsystemBase {
@@ -10,12 +13,17 @@ public final class Intake extends SubsystemBase {
     private final VictorSPX roller, indexerHorizontal, indexerVertical;
     private final DoubleSolenoid deployer;
 
+    private final DigitalInput iOSensor;
+    private final PWM pwm;
+
     private static final int PCM_PORT = 17;
     private static final int ROLLER_PORT = 6;
     private static final int INDEXER_HORIZONTAL_PORT = 8;
     private static final int INDEXER_VERTICAL_PORT = 9;
     private static final int DEPLOYER_FORWARD_CHANNEL = 4;
     private static final int DEPLOYER_REVERSE_CHANNEL = 5;
+    private static final int IO_SENSOR_PORT = 4;
+    private static final int PWM_PORT = 0;
 
     private static Intake instance;
 
@@ -24,7 +32,17 @@ public final class Intake extends SubsystemBase {
         indexerHorizontal = new VictorSPX(INDEXER_HORIZONTAL_PORT);
         indexerVertical = new VictorSPX(INDEXER_VERTICAL_PORT);
         deployer = new DoubleSolenoid(PCM_PORT, DEPLOYER_FORWARD_CHANNEL, DEPLOYER_REVERSE_CHANNEL);
+        iOSensor = new DigitalInput(IO_SENSOR_PORT);
+        pwm = new PWM(PWM_PORT);
         configureVictors();
+    }
+
+    public boolean getIO() {
+        return !iOSensor.get();
+    }
+
+    public void senseObject() {
+        pwm.setRaw(getIO() ? 255 : 0);
     }
 
     public static Intake getInstance() {

@@ -6,6 +6,8 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
+
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import io.github.oblarg.oblog.annotations.Config;
 import io.github.oblarg.oblog.annotations.Log;
@@ -16,9 +18,11 @@ public final class Shooter extends SubsystemBase {
     private final VictorSPX shooterSlave;
     @Log
     private final MotionMagicGains turretGains;
+    private final Servo servo;
 
     private int turretSetpoint;
 
+    private static final int SERVO_PORT = 1;
     private static final int TURRET_PORT = 11;
     private static final int SHOOTER_MASTER_PORT = 12;
     private static final int SHOOTER_SLAVE_PORT = 13;
@@ -32,8 +36,9 @@ public final class Shooter extends SubsystemBase {
         turret = new TalonSRX(TURRET_PORT);
         shooterMaster = new TalonSRX(SHOOTER_MASTER_PORT);
         shooterSlave = new VictorSPX(SHOOTER_SLAVE_PORT);
-        configureTalons();
+        servo = new Servo(SERVO_PORT);
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
+        configureTalons();
     }
 
     public static Shooter getInstance() {
@@ -42,6 +47,10 @@ public final class Shooter extends SubsystemBase {
         }
 
         return instance;
+    }
+
+    public void setServoPosition(double position) {
+        servo.setPosition(position);
     }
 
     private void configureTalons() {
