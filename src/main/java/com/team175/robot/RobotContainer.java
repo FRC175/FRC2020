@@ -80,7 +80,7 @@ public class RobotContainer {
                 new RunCommand(
                         () -> drive.arcadeDrive(
                                 driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft),
-                                driverController.getX(GenericHID.Hand.kLeft)
+                                driverController.getX(GenericHID.Hand.kRight)
                         ),
                         drive
                 ).andThen(() -> drive.arcadeDrive(0, 0), drive)
@@ -93,7 +93,7 @@ public class RobotContainer {
      * and then passing it to a {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
      */
     private void configureButtonBindings() {
-        // Deploy/retract intake
+        // Deploy/retract intakex
         new XboxButton(operatorController, AdvancedXboxController.Button.B)
                 .whenPressed(() -> intake.deploy(!intake.isDeployed()), intake);
 
@@ -106,10 +106,7 @@ public class RobotContainer {
         new XboxButton(operatorController, AdvancedXboxController.Button.X)
                 .toggleWhenPressed(new FunctionalCommand(
                         () -> {},
-                        () -> {
-                                intake.setIndexerOpenLoop(1);
-                                intake.senseObject();
-                        },
+                        () -> intake.setIndexerOpenLoop(1),
                         (finished) -> intake.setIndexerOpenLoop(0),
                         () -> false,
                         intake
@@ -143,7 +140,10 @@ public class RobotContainer {
         // Manual Turret Control
         new XboxButton(operatorController, AdvancedXboxController.Button.RIGHT_BUMPER)
                 .whileHeld(new RunCommand(
-                        () -> shooter.setTurretOpenLoop(operatorController.getX(GenericHID.Hand.kRight)),
+                        () -> {
+                            shooter.setTurretOpenLoop(operatorController.getX(GenericHID.Hand.kRight));
+                            shooter.setShooterOpenLoop(operatorController.getY(GenericHID.Hand.kRight));
+                        },
                         shooter
                 ))
                 .whenReleased(() -> shooter.setTurretOpenLoop(0), shooter);
@@ -155,6 +155,10 @@ public class RobotContainer {
                         climber
                 ))
                 .whenReleased(() -> climber.setWinchOpenLoop(0), climber);
+
+        // Deploy/retract ball gate
+        new XboxButton(operatorController, AdvancedXboxController.DPad.UP)
+                .whenPressed(() -> shooter.setBallGate(!shooter.getBallGate()), shooter);
 
         // Deploy/retract winch
         new XboxButton(driverController, AdvancedXboxController.Button.LEFT_BUMPER)

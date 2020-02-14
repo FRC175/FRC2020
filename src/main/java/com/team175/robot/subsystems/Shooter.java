@@ -8,25 +8,27 @@ import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
 
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import io.github.oblarg.oblog.annotations.Config;
 import io.github.oblarg.oblog.annotations.Log;
 
 public final class Shooter extends SubsystemBase {
 
-    private final TalonSRX turret, shooterMaster;
-    private final VictorSPX shooterSlave;
+    private final TalonSRX turret, shooterMaster, shooterSlave;
+    private final Solenoid ballGate;
     @Log
     private final MotionMagicGains turretGains;
     private final Servo servo;
 
     private int turretSetpoint;
 
+    private static final int PCM_PORT = 17;
     private static final int SERVO_PORT = 1;
     private static final int TURRET_PORT = 11;
-    private static final int SHOOTER_MASTER_PORT = 12;
-    private static final int SHOOTER_SLAVE_PORT = 13;
-
+    private static final int SHOOTER_MASTER_PORT = 13;
+    private static final int SHOOTER_SLAVE_PORT = 12;
+    private static final int BALL_GATE_CHANNEL = 6;
     private static final int TURRET_DEADBAND = 5;
     private static final int COUNTS_PER_REVOLUTION = 4096; // TODO: Fix
 
@@ -35,8 +37,9 @@ public final class Shooter extends SubsystemBase {
     private Shooter() {
         turret = new TalonSRX(TURRET_PORT);
         shooterMaster = new TalonSRX(SHOOTER_MASTER_PORT);
-        shooterSlave = new VictorSPX(SHOOTER_SLAVE_PORT);
+        shooterSlave = new TalonSRX(SHOOTER_SLAVE_PORT);
         servo = new Servo(SERVO_PORT);
+        ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
         configureTalons();
     }
@@ -47,10 +50,6 @@ public final class Shooter extends SubsystemBase {
         }
 
         return instance;
-    }
-
-    public void setServoPosition(double position) {
-        servo.setPosition(position);
     }
 
     private void configureTalons() {
@@ -77,6 +76,14 @@ public final class Shooter extends SubsystemBase {
 
     private Rotation2d countsToDegrees(double position) {
         return Rotation2d.fromDegrees(position * (360.0 / COUNTS_PER_REVOLUTION));
+    }
+
+    public void setServoPosition(double position) {
+        servo.setPosition(position);
+    }
+
+    public void setBallGate(boolean allowBalls) {
+        ballGate.set(allowBalls);
     }
 
     public void setTurretOpenLoop(double demand) {
@@ -123,6 +130,11 @@ public final class Shooter extends SubsystemBase {
     @Log
     private double getShooterDemand() {
         return shooterMaster.getMotorOutputPercent();
+    }
+
+    @Log
+    public boolean getBallGate() {
+        return ballGate.get();
     }
 
     @Override
