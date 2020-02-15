@@ -1,10 +1,13 @@
 package com.team175.robot;
 
+import com.team175.robot.commands.BlinkLED;
 import com.team175.robot.commands.LockOntoTarget;
+import com.team175.robot.commands.RotateTurretToFieldOrientedCardinal;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
 import com.team175.robot.positions.TurretCardinal;
 import com.team175.robot.subsystems.Drive;
+import com.team175.robot.subsystems.LED;
 import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -13,6 +16,7 @@ import edu.wpi.first.wpilibj.shuffleboard.EventImportance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +33,7 @@ public class RobotContainer {
     private final Drive drive;
     private final Limelight limelight;
     private final Shooter shooter;
+    private final LED led;
     private final AdvancedXboxController driverController;
     private final SendableChooser<Command> autoChooser;
     private final Logger logger;
@@ -47,6 +52,7 @@ public class RobotContainer {
         drive = Drive.getInstance();
         limelight = Limelight.getInstance();
         shooter = Shooter.getInstance();
+        led = LED.getInstance();
         driverController = new AdvancedXboxController(DRIVER_CONTROLLER_PORT, CONTROLLER_DEADBAND);
         autoChooser = new SendableChooser<>();
         logger = LoggerFactory.getLogger(getClass().getSimpleName());
@@ -94,6 +100,9 @@ public class RobotContainer {
                 .whenPressed(new InstantCommand(limelight::blinkLED, limelight)
                         .andThen(new WaitCommand(1))
                         .andThen(limelight::defaultLED, limelight));
+        // Blink LED
+        new XboxButton(driverController, AdvancedXboxController.Button.B)
+                .whenPressed(new BlinkLED(led, Color.kGreen));
         // Toggle LED
         /*new XboxButton(driverController, AdvancedXboxController.Button.A)
                 .toggleWhenPressed(new InstantCommand() {
@@ -108,22 +117,37 @@ public class RobotContainer {
         // Manual Turret Control
         new XboxButton(driverController, AdvancedXboxController.Button.RIGHT_BUMPER)
                 .whileHeld(new RunCommand(
-                        () -> shooter.setTurretOpenLoop(driverController.getX(GenericHID.Hand.kRight)),
+                        () -> shooter.setTurretOpenLoop(-driverController.getX(GenericHID.Hand.kRight)),
                         shooter
                 ))
                 .whenReleased(() -> shooter.setTurretOpenLoop(0), shooter);
-        // Reset Shooter sensors
+        // Reset sensors
         new XboxButton(driverController, AdvancedXboxController.Button.LEFT_BUMPER)
-                .whenPressed(shooter::resetSensors, shooter);
+                .whenPressed(
+                        () -> {
+                            drive.resetSensors();
+                            shooter.resetSensors();
+                        },
+                        drive,
+                        shooter
+                );
         // Turret Cardinals
-        new XboxButton(driverController, AdvancedXboxController.DPad.UP)
+        /*new XboxButton(driverController, AdvancedXboxController.DPad.UP)
                 .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.NORTH), shooter);
         new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
                 .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.EAST), shooter);
         new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
                 .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.SOUTH), shooter);
         new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
-                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.WEST), shooter);
+                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.WEST), shooter);*/
+        new XboxButton(driverController, AdvancedXboxController.DPad.UP)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.NORTH));
+        new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.EAST));
+        new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.SOUTH));
+        new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.WEST));
     }
 
     private void configureAutoChooser() {

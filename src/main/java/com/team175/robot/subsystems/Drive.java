@@ -3,7 +3,11 @@ package com.team175.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.sensors.PigeonIMU;
 import com.team175.robot.utils.DriveHelper;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
@@ -14,8 +18,10 @@ import io.github.oblarg.oblog.annotations.Log;
 public class Drive extends SubsystemBase {
 
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
+    private final PigeonIMU pigeon;
     private final DriveHelper driveHelper;
     // private final DoubleSolenoid shifter;
+    private final DifferentialDriveOdometry odometry;
 
     private static final int LEFT_MASTER_PORT = 1;
     private static final int LEFT_SLAVE_PORT = 2;
@@ -39,12 +45,13 @@ public class Drive extends SubsystemBase {
         leftSlave = new TalonSRX(LEFT_SLAVE_PORT);
         rightMaster = new TalonSRX(RIGHT_MASTER_PORT);
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
+        pigeon = new PigeonIMU(rightSlave);
+        configureTalons();
+        configurePigeon();
 
         driveHelper = new DriveHelper(leftMaster, rightMaster);
-
         /*shifter = new DoubleSolenoid(SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);*/
-
-        configureTalons();
+        odometry = new DifferentialDriveOdometry(getHeading());
     }
 
     /**
@@ -86,6 +93,10 @@ public class Drive extends SubsystemBase {
         rightSlave.setInverted(InvertType.FollowMaster);
     }
 
+    private void configurePigeon() {
+        pigeon.setFusedHeading(0);
+    }
+
     public void setOpenLoop(double leftDemand, double rightDemand) {
         leftMaster.set(ControlMode.PercentOutput, leftDemand);
         rightMaster.set(ControlMode.PercentOutput, rightDemand);
@@ -104,12 +115,12 @@ public class Drive extends SubsystemBase {
     }*/
 
     @Log
-    public double getLeftDemand() {
+    private double getLeftDemand() {
         return leftMaster.getMotorOutputPercent();
     }
 
     @Log
-    public double getLeftVoltage() {
+    private double getLeftVoltage() {
         return leftMaster.getMotorOutputVoltage();
     }
 
@@ -119,12 +130,12 @@ public class Drive extends SubsystemBase {
     }*/
 
     @Log
-    public double getRightDemand() {
+    private double getRightDemand() {
         return rightMaster.getMotorOutputPercent();
     }
 
     @Log
-    public double getRightVoltage() {
+    private double getRightVoltage() {
         return rightMaster.getMotorOutputVoltage();
     }
 
@@ -133,14 +144,32 @@ public class Drive extends SubsystemBase {
         return rightMaster.getSelectedSensorVelocity();
     }*/
 
+    @Log.ToString
+    public Rotation2d getHeading() {
+        return Rotation2d.fromDegrees(Math.IEEEremainder(pigeon.getFusedHeading(), 360));
+    }
+
     /*
     @Log
     public boolean isHighGear() {
         return shifter.get() == DoubleSolenoid.Value.kForward;
     }*/
 
+    @Log.ToString
+    public Pose2d getPose() {
+        return odometry.getPoseMeters();
+    }
+
+    @Override
+    public void periodic() {
+        // Pigeon IMU is CCW positive
+        // TODO: Fix and add encoders
+        odometry.update(getHeading(), 0, 0);
+    }
+
     @Override
     public void resetSensors() {
+        pigeon.setFusedHeading(0);
     }
 
     @Override

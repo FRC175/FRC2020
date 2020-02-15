@@ -12,13 +12,14 @@ import io.github.oblarg.oblog.annotations.Log;
 public final class Shooter extends SubsystemBase {
 
     private final TalonSRX turret;
-    @Log
+    /*@Log
+    @Config*/
     private final MotionMagicGains turretGains;
 
     private int turretSetpoint;
 
     private static final int TURRET_PORT = 5;
-    private static final int TURRET_DEADBAND = 5;
+    private static final Rotation2d TURRET_DEADBAND = Rotation2d.fromDegrees(2); // Degrees
     private static final int COUNTS_PER_REVOLUTION = 4096; // TODO: Fix
 
     private static Shooter instance;
@@ -26,7 +27,7 @@ public final class Shooter extends SubsystemBase {
     private Shooter() {
         turret = new TalonSRX(TURRET_PORT);
         configureTalons();
-        turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
+        turretGains = new MotionMagicGains(10.1, 0, 0, 0, 0, 0, turret);
     }
 
     public static Shooter getInstance() {
@@ -40,11 +41,12 @@ public final class Shooter extends SubsystemBase {
     private void configureTalons() {
         // Configuration
         turret.configFactoryDefault();
-        turret.setInverted(true);
+        turret.setInverted(false);
         turret.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
         turret.setSensorPhase(true);
         // TODO: Comment out in real robot
         turret.setSelectedSensorPosition(0);
+        // turret.configAllowableClosedloopError(0, degreesToCounts(TURRET_DEADBAND));
 
         // Homing
         // setTurretAngle(0);
@@ -63,7 +65,7 @@ public final class Shooter extends SubsystemBase {
     }
 
     @Config
-    public void setTurretPosition(int position) {
+    private void setTurretPosition(int position) {
         turretSetpoint = position;
         turret.set(ControlMode.Position, turretSetpoint);
     }
@@ -86,14 +88,15 @@ public final class Shooter extends SubsystemBase {
         return turret.getSelectedSensorPosition();
     }
 
+    @Log.ToString
     public Rotation2d getTurretHeading() {
         return countsToDegrees(getTurretPosition());
     }
 
-    @Log
+    /*@Log
     private double getLoggableTurretHeading() {
         return getTurretHeading().getDegrees();
-    }
+    }*/
 
     @Override
     public void resetSensors() {
