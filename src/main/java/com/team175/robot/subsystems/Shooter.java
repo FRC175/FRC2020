@@ -3,31 +3,44 @@ package com.team175.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.Solenoid;
 import io.github.oblarg.oblog.annotations.Config;
 import io.github.oblarg.oblog.annotations.Log;
 
 public final class Shooter extends SubsystemBase {
 
-    private final TalonSRX turret;
-    /*@Log
-    @Config*/
+    private final TalonSRX turret, shooterMaster, shooterSlave;
+    private final Solenoid ballGate;
+    @Log
     private final MotionMagicGains turretGains;
+    private final Servo servo;
 
     private int turretSetpoint;
 
-    private static final int TURRET_PORT = 5;
-    private static final Rotation2d TURRET_DEADBAND = Rotation2d.fromDegrees(2); // Degrees
+    private static final int PCM_PORT = 17;
+    private static final int SERVO_PORT = 1;
+    private static final int TURRET_PORT = 11;
+    private static final int SHOOTER_MASTER_PORT = 13;
+    private static final int SHOOTER_SLAVE_PORT = 12;
+    private static final int BALL_GATE_CHANNEL = 6;
+    private static final int TURRET_DEADBAND = 5;
     private static final int COUNTS_PER_REVOLUTION = 4096; // TODO: Fix
 
     private static Shooter instance;
 
     private Shooter() {
         turret = new TalonSRX(TURRET_PORT);
+        shooterMaster = new TalonSRX(SHOOTER_MASTER_PORT);
+        shooterSlave = new TalonSRX(SHOOTER_SLAVE_PORT);
+        servo = new Servo(SERVO_PORT);
+        ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
         configureTalons();
-        turretGains = new MotionMagicGains(10.1, 0, 0, 0, 0, 0, turret);
+        turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
     }
 
     public static Shooter getInstance() {
@@ -47,6 +60,9 @@ public final class Shooter extends SubsystemBase {
         // TODO: Comment out in real robot
         turret.setSelectedSensorPosition(0);
         // turret.configAllowableClosedloopError(0, degreesToCounts(TURRET_DEADBAND));
+        shooterMaster.configFactoryDefault();
+        shooterSlave.configFactoryDefault();
+        shooterSlave.follow(shooterMaster);
 
         // Homing
         // setTurretAngle(0);
@@ -65,7 +81,7 @@ public final class Shooter extends SubsystemBase {
     }
 
     @Config
-    private void setTurretPosition(int position) {
+    public void setTurretPosition(int position) {
         turretSetpoint = position;
         turret.set(ControlMode.Position, turretSetpoint);
     }
@@ -83,6 +99,18 @@ public final class Shooter extends SubsystemBase {
         setTurretHeading(cardinal.toRotation2d());
     }
 
+    public void setShooterOpenLoop(double demand) {
+        shooterMaster.set(ControlMode.PercentOutput, demand);
+    }
+
+    public void setServoPosition(double position) {
+        servo.setPosition(position);
+    }
+
+    public void setBallGate(boolean allowBalls) {
+        ballGate.set(allowBalls);
+    }
+
     @Log
     public int getTurretPosition() {
         return turret.getSelectedSensorPosition();
@@ -93,10 +121,15 @@ public final class Shooter extends SubsystemBase {
         return countsToDegrees(getTurretPosition());
     }
 
-    /*@Log
-    private double getLoggableTurretHeading() {
-        return getTurretHeading().getDegrees();
-    }*/
+    @Log
+    private double getShooterDemand() {
+        return shooterMaster.getMotorOutputPercent();
+    }
+
+    @Log
+    public boolean getBallGate() {
+        return ballGate.get();
+    }
 
     @Override
     public void resetSensors() {

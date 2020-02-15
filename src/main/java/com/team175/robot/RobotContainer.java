@@ -1,13 +1,14 @@
 package com.team175.robot;
 
-import com.team175.robot.commands.BlinkLED;
 import com.team175.robot.commands.LockOntoTarget;
-import com.team175.robot.commands.RotateTurretToFieldOrientedCardinal;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
+import com.team175.robot.subsystems.Intake;
+import com.team175.robot.subsystems.Climber;
+import com.team175.robot.subsystems.ColorWheelSpinner;
 import com.team175.robot.positions.TurretCardinal;
-import com.team175.robot.subsystems.Drive;
 import com.team175.robot.subsystems.LED;
+import com.team175.robot.subsystems.Drive;
 import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -27,14 +28,17 @@ import org.slf4j.LoggerFactory;
  * calls). Instead, the structure of the robot (including subsystems, commands, and button mappings) should be declared
  * here.
  */
-public class RobotContainer {
+public final class RobotContainer {
 
     // The robot's subsystems and commands are defined here
     private final Drive drive;
     private final Limelight limelight;
     private final Shooter shooter;
+    private final ColorWheelSpinner colorWheelSpinner;
+    private final Intake intake;
+    private final Climber climber;
     private final LED led;
-    private final AdvancedXboxController driverController;
+    private final AdvancedXboxController driverController, operatorController;
     private final SendableChooser<Command> autoChooser;
     private final Logger logger;
 
@@ -43,6 +47,7 @@ public class RobotContainer {
     private static RobotContainer instance;
 
     private static final int DRIVER_CONTROLLER_PORT = 0;
+    private static final int OPERATOR_CONTROLLER_PORT = 1;
     private static final double CONTROLLER_DEADBAND = 0.1;
 
     /**
@@ -52,8 +57,12 @@ public class RobotContainer {
         drive = Drive.getInstance();
         limelight = Limelight.getInstance();
         shooter = Shooter.getInstance();
+        colorWheelSpinner = ColorWheelSpinner.getInstance();
+        intake = Intake.getInstance();
+        climber = Climber.getInstance();
         led = LED.getInstance();
         driverController = new AdvancedXboxController(DRIVER_CONTROLLER_PORT, CONTROLLER_DEADBAND);
+        operatorController = new AdvancedXboxController(OPERATOR_CONTROLLER_PORT, CONTROLLER_DEADBAND);
         autoChooser = new SendableChooser<>();
         logger = LoggerFactory.getLogger(getClass().getSimpleName());
 
@@ -91,18 +100,9 @@ public class RobotContainer {
      */
     private void configureButtonBindings() {
         // Align to target
-        /*new XboxButton(driverController, AdvancedXboxController.Button.X)
-                .whileHeld(new RotateTurretToTarget(shooter, limelight));*/
         new XboxButton(driverController, AdvancedXboxController.Button.X)
                 .toggleWhenPressed(new LockOntoTarget(shooter, limelight));
-        // Blink LED
-        new XboxButton(driverController, AdvancedXboxController.Button.Y)
-                .whenPressed(new InstantCommand(limelight::blinkLED, limelight)
-                        .andThen(new WaitCommand(1))
-                        .andThen(limelight::defaultLED, limelight));
-        // Blink LED
-        new XboxButton(driverController, AdvancedXboxController.Button.B)
-                .whenPressed(new BlinkLED(led, Color.kGreen));
+
         // Toggle LED
         /*new XboxButton(driverController, AdvancedXboxController.Button.A)
                 .toggleWhenPressed(new InstantCommand() {
@@ -114,32 +114,86 @@ public class RobotContainer {
                         limelight.setLED(toggle);
                     }
                 });*/
+
+        // Blink LED
+        new XboxButton(driverController, AdvancedXboxController.Button.B)
+                .whenPressed(new BlinkLED(led, Color.kGreen));
+
+        // Intake control
+        new XboxButton(operatorController, AdvancedXboxController.Button.A)
+                .whileHeld(() -> intake.setRollerOpenLoop(1), intake)
+                .whenPressed(() -> intake.setIndexerOpenLoop(1), intake);
+
+        // Indexer toggle
+        new XboxButton(operatorController, AdvancedXboxController.Button.X)
+                .toggleWhenPressed(new FunctionalCommand(
+                        () -> {},
+                        () -> intake.setIndexerOpenLoop(1),
+                        (finished) -> intake.setIndexerOpenLoop(0),
+                        () -> false,
+                        intake
+                ));
+
+        new XboxButton(operatorController, AdvancedXboxController.Button.Y)
+                .whileHeld(() -> {
+                    intake.setIndexerOpenLoop(-1);
+                    intake.setRollerOpenLoop(-1);
+                }, intake)
+                .whenReleased(() -> {
+                    intake.setIndexerOpenLoop(0);
+                    intake.setRollerOpenLoop(0);
+                }, intake);
+
+
+        // Deploy/retract color wheel device
+        new XboxButton(operatorController, AdvancedXboxController.Button.LEFT_BUMPER)
+                .whenPressed(() -> colorWheelSpinner.deploy(!colorWheelSpinner.isDeployed()), colorWheelSpinner);
+
+        // Manual color wheel control
+        new XboxButton(driverController, AdvancedXboxController.Button.B)
+                .whileHeld(() -> colorWheelSpinner.setOpenLoop(1), colorWheelSpinner)
+                .whenReleased(() -> colorWheelSpinner.setOpenLoop(0), colorWheelSpinner);
+
+        // Shift gears
+        new XboxButton(driverController, AdvancedXboxController.Button.X)
+                .whileHeld(() -> drive.setHighGear(true), drive)
+                .whenReleased(() -> drive.setHighGear(false), drive);
+
         // Manual Turret Control
-        new XboxButton(driverController, AdvancedXboxController.Button.RIGHT_BUMPER)
+        new XboxButton(operatorController, AdvancedXboxController.Button.RIGHT_BUMPER)
                 .whileHeld(new RunCommand(
-                        () -> shooter.setTurretOpenLoop(-driverController.getX(GenericHID.Hand.kRight)),
+                        () -> {
+                            shooter.setTurretOpenLoop(operatorController.getX(GenericHID.Hand.kRight));
+                            shooter.setShooterOpenLoop(operatorController.getY(GenericHID.Hand.kRight));
+                        },
                         shooter
                 ))
                 .whenReleased(() -> shooter.setTurretOpenLoop(0), shooter);
-        // Reset sensors
+
+        // Manual winch
+        new XboxButton(driverController, AdvancedXboxController.Button.RIGHT_BUMPER)
+                .whileHeld(new RunCommand(
+                        () -> climber.setWinchOpenLoop(driverController.getY(GenericHID.Hand.kRight)),
+                        climber
+                ))
+                .whenReleased(() -> climber.setWinchOpenLoop(0), climber);
+
+        // Deploy/retract ball gate
+        new XboxButton(operatorController, AdvancedXboxController.DPad.UP)
+                .whenPressed(() -> shooter.setBallGate(!shooter.getBallGate()), shooter);
+
+        // Deploy/retract winch
         new XboxButton(driverController, AdvancedXboxController.Button.LEFT_BUMPER)
-                .whenPressed(
-                        () -> {
-                            drive.resetSensors();
-                            shooter.resetSensors();
-                        },
-                        drive,
-                        shooter
-                );
+                .whenPressed(() -> climber.deploy(!climber.isDeployed()), climber);
+        // Reset Shooter sensors
+        new XboxButton(driverController, AdvancedXboxController.Button.LEFT_BUMPER)
+                .whenPressed(shooter::resetSensors, shooter);
+
+        new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
+                .whenPressed(() ->  shooter.setServoPosition(1), shooter)
+                .whenReleased(() ->  shooter.setServoPosition(0), shooter);
+
         // Turret Cardinals
-        /*new XboxButton(driverController, AdvancedXboxController.DPad.UP)
-                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.NORTH), shooter);
-        new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
-                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.EAST), shooter);
-        new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
-                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.SOUTH), shooter);
-        new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
-                .whenPressed(() -> shooter.setTurretCardinal(TurretCardinal.WEST), shooter);*/
         new XboxButton(driverController, AdvancedXboxController.DPad.UP)
                 .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.NORTH));
         new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
@@ -147,7 +201,9 @@ public class RobotContainer {
         new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
                 .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.SOUTH));
         new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
-                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.WEST));
+                .whenPressed(new RotateTurrenew XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
+                        .whenPressed(() ->  shooter.setServoPosition(1), shooter)
+                        .whenReleased(() ->  shooter.setServoPosition(0), shooter);tToFieldOrientedCardinal(drive, shooter, TurretCardinal.WEST));
     }
 
     private void configureAutoChooser() {

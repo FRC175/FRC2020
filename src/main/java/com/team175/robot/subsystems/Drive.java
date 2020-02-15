@@ -3,11 +3,7 @@ package com.team175.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ctre.phoenix.sensors.PigeonIMU;
 import com.team175.robot.utils.DriveHelper;
-import edu.wpi.first.wpilibj.geometry.Pose2d;
-import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
@@ -15,20 +11,20 @@ import io.github.oblarg.oblog.annotations.Log;
  * Pigeon gyro. This class is packed with documentation to better understand design choices and robot programming in
  * general.
  */
-public class Drive extends SubsystemBase {
+public final class Drive extends SubsystemBase {
 
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
     private final PigeonIMU pigeon;
     private final DriveHelper driveHelper;
-    // private final DoubleSolenoid shifter;
-    private final DifferentialDriveOdometry odometry;
+    private final DoubleSolenoid shifter;
 
+    private static final int PCM_PORT = 17;
     private static final int LEFT_MASTER_PORT = 1;
     private static final int LEFT_SLAVE_PORT = 2;
     private static final int RIGHT_MASTER_PORT = 3;
     private static final int RIGHT_SLAVE_PORT = 4;
-    // private static final int SHIFTER_FORWARD_CHANNEL = 0;
-    // private static final int SHIFTER_REVERSE_CHANNEL = 0;
+    private static final int SHIFTER_FORWARD_CHANNEL = 0;
+    private static final int SHIFTER_REVERSE_CHANNEL = 1;
 
     /**
      * The single instance of {@link Drive} used to implement the "singleton" design pattern. A description of the
@@ -48,10 +44,8 @@ public class Drive extends SubsystemBase {
         pigeon = new PigeonIMU(rightSlave);
         configureTalons();
         configurePigeon();
-
         driveHelper = new DriveHelper(leftMaster, rightMaster);
-        /*shifter = new DoubleSolenoid(SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);*/
-        odometry = new DifferentialDriveOdometry(getHeading());
+        shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
     }
 
     /**
@@ -94,6 +88,7 @@ public class Drive extends SubsystemBase {
     }
 
     private void configurePigeon() {
+        pigeon.configFactoryDefault();
         pigeon.setFusedHeading(0);
     }
 
@@ -110,17 +105,17 @@ public class Drive extends SubsystemBase {
         driveHelper.cheesyDrive(throttle, turn, isQuickTurn, true);
     }
 
-    /*public void setHighGear(boolean shift) {
-        shifter.set(shift);
-    }*/
+    public void setHighGear(boolean enable) {
+        shifter.set(enable ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+    }
 
     @Log
-    private double getLeftDemand() {
+    public double getLeftDemand() {
         return leftMaster.getMotorOutputPercent();
     }
 
     @Log
-    private double getLeftVoltage() {
+    public double getLeftVoltage() {
         return leftMaster.getMotorOutputVoltage();
     }
 
@@ -130,12 +125,12 @@ public class Drive extends SubsystemBase {
     }*/
 
     @Log
-    private double getRightDemand() {
+    public double getRightDemand() {
         return rightMaster.getMotorOutputPercent();
     }
 
     @Log
-    private double getRightVoltage() {
+    public double getRightVoltage() {
         return rightMaster.getMotorOutputVoltage();
     }
 
@@ -149,11 +144,10 @@ public class Drive extends SubsystemBase {
         return Rotation2d.fromDegrees(Math.IEEEremainder(pigeon.getFusedHeading(), 360));
     }
 
-    /*
     @Log
     public boolean isHighGear() {
         return shifter.get() == DoubleSolenoid.Value.kForward;
-    }*/
+    }
 
     @Log.ToString
     public Pose2d getPose() {
@@ -162,7 +156,6 @@ public class Drive extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // Pigeon IMU is CCW positive
         // TODO: Fix and add encoders
         odometry.update(getHeading(), 0, 0);
     }
