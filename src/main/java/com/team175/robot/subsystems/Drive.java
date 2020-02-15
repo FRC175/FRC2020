@@ -3,7 +3,12 @@ package com.team175.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.sensors.PigeonIMU;
 import com.team175.robot.utils.DriveHelper;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
@@ -17,6 +22,7 @@ public final class Drive extends SubsystemBase {
     private final PigeonIMU pigeon;
     private final DriveHelper driveHelper;
     private final DoubleSolenoid shifter;
+    private final DifferentialDriveOdometry odometry;
 
     private static final int PCM_PORT = 17;
     private static final int LEFT_MASTER_PORT = 1;
@@ -46,6 +52,7 @@ public final class Drive extends SubsystemBase {
         configurePigeon();
         driveHelper = new DriveHelper(leftMaster, rightMaster);
         shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
+        odometry = new DifferentialDriveOdometry(getHeading());
     }
 
     /**

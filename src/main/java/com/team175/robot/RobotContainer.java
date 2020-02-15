@@ -1,6 +1,8 @@
 package com.team175.robot;
 
+import com.team175.robot.commands.BlinkLED;
 import com.team175.robot.commands.LockOntoTarget;
+import com.team175.robot.commands.RotateTurretToFieldOrientedCardinal;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
 import com.team175.robot.subsystems.Intake;
@@ -201,9 +203,11 @@ public final class RobotContainer {
         new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
                 .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.SOUTH));
         new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
-                .whenPressed(new RotateTurrenew XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
-                        .whenPressed(() ->  shooter.setServoPosition(1), shooter)
-                        .whenReleased(() ->  shooter.setServoPosition(0), shooter);tToFieldOrientedCardinal(drive, shooter, TurretCardinal.WEST));
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.WEST));
+
+        new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
+                .whenPressed(() ->  shooter.setServoPosition(1), shooter)
+                .whenReleased(() ->  shooter.setServoPosition(0), shooter);
     }
 
     private void configureAutoChooser() {
