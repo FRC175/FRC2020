@@ -3,6 +3,9 @@ package com.team175.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel;
+import com.revrobotics.SparkMax;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PWM;
@@ -10,12 +13,12 @@ import io.github.oblarg.oblog.annotations.Log;
 
 public final class Intake extends SubsystemBase {
 
-    private final VictorSPX roller, indexerHorizontal, indexerVertical;
+    private final CANSparkMax roller;
+    private final VictorSPX indexerHorizontal, indexerVertical;
     private final DoubleSolenoid deployer;
 
     private final DigitalInput intakeInSensor;
     private final DigitalInput intakeOutSensor;
-    private final PWM pwm;
 
     private static final int PCM_PORT = 17;
     private static final int ROLLER_PORT = 6;
@@ -25,18 +28,16 @@ public final class Intake extends SubsystemBase {
     private static final int DEPLOYER_REVERSE_CHANNEL = 5;
     private static final int INTAKE_IN_PORT = 4;
     private static final int INTAKE_OUT_PORT = 8;
-    private static final int PWM_PORT = 0;
 
     private static Intake instance;
 
     private Intake() {
-        roller = new VictorSPX(ROLLER_PORT);
+        roller = new CANSparkMax(ROLLER_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         indexerHorizontal = new VictorSPX(INDEXER_HORIZONTAL_PORT);
         indexerVertical = new VictorSPX(INDEXER_VERTICAL_PORT);
         deployer = new DoubleSolenoid(PCM_PORT, DEPLOYER_FORWARD_CHANNEL, DEPLOYER_REVERSE_CHANNEL);
         intakeInSensor = new DigitalInput(INTAKE_IN_PORT);
         intakeOutSensor = new DigitalInput(INTAKE_OUT_PORT);
-        pwm = new PWM(PWM_PORT);
         configureVictors();
     }
 
@@ -56,16 +57,17 @@ public final class Intake extends SubsystemBase {
         return instance;
     }
 
+    private void configureSparkMax() {
+        roller.restoreFactoryDefaults();
+    }
+
     private void configureVictors() {
-        roller.configFactoryDefault();
         indexerHorizontal.configFactoryDefault();
         indexerVertical.configFactoryDefault();
     }
 
     public void setRollerOpenLoop(double demand) {
-        roller.set(ControlMode.PercentOutput, demand);
-        indexerHorizontal.set(ControlMode.PercentOutput, demand);
-        indexerVertical.set(ControlMode.PercentOutput, demand);
+        roller.set(demand);
     }
 
     public void setIndexerOpenLoop(double demand) {

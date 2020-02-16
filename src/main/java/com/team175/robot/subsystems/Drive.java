@@ -19,16 +19,16 @@ import io.github.oblarg.oblog.annotations.Log;
 public final class Drive extends SubsystemBase {
 
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
-    private final PigeonIMU pigeon;
-    private final DriveHelper driveHelper;
+    private final PigeonIMU gyro;
     private final DoubleSolenoid shifter;
+    private final DriveHelper driveHelper;
     private final DifferentialDriveOdometry odometry;
 
     private static final int PCM_PORT = 17;
-    private static final int LEFT_MASTER_PORT = 1;
-    private static final int LEFT_SLAVE_PORT = 2;
-    private static final int RIGHT_MASTER_PORT = 3;
-    private static final int RIGHT_SLAVE_PORT = 4;
+    private static final int LEFT_MASTER_PORT = 2;
+    private static final int LEFT_SLAVE_PORT = 1;
+    private static final int RIGHT_MASTER_PORT = 4;
+    private static final int RIGHT_SLAVE_PORT = 3;
     private static final int SHIFTER_FORWARD_CHANNEL = 0;
     private static final int SHIFTER_REVERSE_CHANNEL = 1;
 
@@ -47,11 +47,11 @@ public final class Drive extends SubsystemBase {
         leftSlave = new TalonSRX(LEFT_SLAVE_PORT);
         rightMaster = new TalonSRX(RIGHT_MASTER_PORT);
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
-        pigeon = new PigeonIMU(rightSlave);
+        gyro = new PigeonIMU(rightSlave);
+        shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
         configureTalons();
         configurePigeon();
         driveHelper = new DriveHelper(leftMaster, rightMaster);
-        shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
         odometry = new DifferentialDriveOdometry(getHeading());
     }
 
@@ -95,8 +95,8 @@ public final class Drive extends SubsystemBase {
     }
 
     private void configurePigeon() {
-        pigeon.configFactoryDefault();
-        pigeon.setFusedHeading(0);
+        gyro.configFactoryDefault();
+        gyro.setFusedHeading(0);
     }
 
     public void setOpenLoop(double leftDemand, double rightDemand) {
@@ -148,7 +148,7 @@ public final class Drive extends SubsystemBase {
 
     @Log.ToString
     public Rotation2d getHeading() {
-        return Rotation2d.fromDegrees(Math.IEEEremainder(pigeon.getFusedHeading(), 360));
+        return Rotation2d.fromDegrees(Math.IEEEremainder(gyro.getFusedHeading(), 360));
     }
 
     @Log
@@ -169,7 +169,7 @@ public final class Drive extends SubsystemBase {
 
     @Override
     public void resetSensors() {
-        pigeon.setFusedHeading(0);
+        gyro.setFusedHeading(0);
     }
 
     @Override

@@ -4,6 +4,9 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel;
+import com.revrobotics.ControlType;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -15,18 +18,17 @@ import io.github.oblarg.oblog.annotations.Log;
 public final class Shooter extends SubsystemBase {
 
     private final TalonSRX turret, shooterMaster, shooterSlave;
+    private final CANSparkMax hood;
     private final Solenoid ballGate;
-    @Log
     private final MotionMagicGains turretGains;
-    private final Servo servo;
 
     private int turretSetpoint;
 
     private static final int PCM_PORT = 17;
-    private static final int SERVO_PORT = 1;
     private static final int TURRET_PORT = 11;
     private static final int SHOOTER_MASTER_PORT = 13;
     private static final int SHOOTER_SLAVE_PORT = 12;
+    private static final int HOOD_PORT = 0;
     private static final int BALL_GATE_CHANNEL = 6;
     private static final int TURRET_DEADBAND = 5;
     private static final int COUNTS_PER_REVOLUTION = 4096; // TODO: Fix
@@ -37,7 +39,7 @@ public final class Shooter extends SubsystemBase {
         turret = new TalonSRX(TURRET_PORT);
         shooterMaster = new TalonSRX(SHOOTER_MASTER_PORT);
         shooterSlave = new TalonSRX(SHOOTER_SLAVE_PORT);
-        servo = new Servo(SERVO_PORT);
+        hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
         configureTalons();
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
@@ -66,6 +68,12 @@ public final class Shooter extends SubsystemBase {
 
         // Homing
         // setTurretAngle(0);
+    }
+
+    private void configureSparkMax() {
+        hood.restoreFactoryDefaults();
+
+        // TODO: Homing position
     }
 
     private int degreesToCounts(Rotation2d heading) {
@@ -103,8 +111,12 @@ public final class Shooter extends SubsystemBase {
         shooterMaster.set(ControlMode.PercentOutput, demand);
     }
 
-    public void setServoPosition(double position) {
-        servo.setPosition(position);
+    public void setHoodOpenLoop(double demand) {
+        hood.set(demand);
+    }
+
+    public void setHoodPosition(double position) {
+        hood.getPIDController().setReference(position, ControlType.kPosition);
     }
 
     public void setBallGate(boolean allowBalls) {

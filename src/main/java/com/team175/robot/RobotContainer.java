@@ -191,9 +191,9 @@ public final class RobotContainer {
         new XboxButton(driverController, AdvancedXboxController.Button.LEFT_BUMPER)
                 .whenPressed(shooter::resetSensors, shooter);
 
-        new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
+        /*new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
                 .whenPressed(() ->  shooter.setServoPosition(1), shooter)
-                .whenReleased(() ->  shooter.setServoPosition(0), shooter);
+                .whenReleased(() ->  shooter.setServoPosition(0), shooter);*/
 
         // Turret Cardinals
         new XboxButton(driverController, AdvancedXboxController.DPad.UP)
@@ -205,14 +205,13 @@ public final class RobotContainer {
         new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
                 .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.WEST));
 
-        new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
+        /*new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
                 .whenPressed(() ->  shooter.setServoPosition(1), shooter)
-                .whenReleased(() ->  shooter.setServoPosition(0), shooter);
+                .whenReleased(() ->  shooter.setServoPosition(0), shooter);*/
     }
 
     private void configureAutoChooser() {
-        autoChooser.setDefaultOption("Do Nothing", null);
-        // autoChooser.addOption();
+        autoChooser.setDefaultOption("Do Nothing", new InstantCommand(() -> {}));
         // Add more auto modes here
         SmartDashboard.putData("Auto Mode Chooser", autoChooser);
     }
