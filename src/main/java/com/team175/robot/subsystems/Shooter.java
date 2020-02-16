@@ -3,7 +3,8 @@ package com.team175.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -15,6 +16,7 @@ import io.github.oblarg.oblog.annotations.Log;
 public final class Shooter extends SubsystemBase {
 
     private final TalonSRX turret, shooterMaster, shooterSlave;
+    private final CANSparkMax hoodAdjust;
     private final Solenoid ballGate;
     @Log
     private final MotionMagicGains turretGains;
@@ -27,6 +29,7 @@ public final class Shooter extends SubsystemBase {
     private static final int TURRET_PORT = 11;
     private static final int SHOOTER_MASTER_PORT = 13;
     private static final int SHOOTER_SLAVE_PORT = 12;
+    private static final int HOOD_ADJUST_PORT = 4;
     private static final int BALL_GATE_CHANNEL = 6;
     private static final int TURRET_DEADBAND = 5;
     private static final int COUNTS_PER_REVOLUTION = 4096; // TODO: Fix
@@ -37,6 +40,7 @@ public final class Shooter extends SubsystemBase {
         turret = new TalonSRX(TURRET_PORT);
         shooterMaster = new TalonSRX(SHOOTER_MASTER_PORT);
         shooterSlave = new TalonSRX(SHOOTER_SLAVE_PORT);
+        hoodAdjust = new CANSparkMax(HOOD_ADJUST_PORT, MotorType.kBrushless);
         servo = new Servo(SERVO_PORT);
         ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
         configureTalons();
@@ -64,8 +68,13 @@ public final class Shooter extends SubsystemBase {
         shooterSlave.configFactoryDefault();
         shooterSlave.follow(shooterMaster);
 
+        configureSparkMax();
         // Homing
         // setTurretAngle(0);
+    }
+
+    private void configureSparkMax() {
+        hoodAdjust.restoreFactoryDefaults();
     }
 
     private int degreesToCounts(Rotation2d heading) {
@@ -88,6 +97,10 @@ public final class Shooter extends SubsystemBase {
 
     public void setTurretHeading(Rotation2d heading) {
         setTurretPosition(degreesToCounts(heading));
+    }
+
+    public void setHoodAdjustOpenLoop(double demand) {
+        hoodAdjust.set(demand);
     }
 
     @Config

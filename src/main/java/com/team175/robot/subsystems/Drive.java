@@ -19,16 +19,16 @@ import io.github.oblarg.oblog.annotations.Log;
 public final class Drive extends SubsystemBase {
 
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
-    private final PigeonIMU pigeon;
+    // private final PigeonIMU pigeon;
     private final DriveHelper driveHelper;
     private final DoubleSolenoid shifter;
-    private final DifferentialDriveOdometry odometry;
+    // private final DifferentialDriveOdometry odometry;
 
     private static final int PCM_PORT = 17;
     private static final int LEFT_MASTER_PORT = 1;
     private static final int LEFT_SLAVE_PORT = 2;
-    private static final int RIGHT_MASTER_PORT = 3;
-    private static final int RIGHT_SLAVE_PORT = 4;
+    private static final int RIGHT_MASTER_PORT = 15;
+    private static final int RIGHT_SLAVE_PORT = 14;
     private static final int SHIFTER_FORWARD_CHANNEL = 0;
     private static final int SHIFTER_REVERSE_CHANNEL = 1;
 
@@ -47,12 +47,12 @@ public final class Drive extends SubsystemBase {
         leftSlave = new TalonSRX(LEFT_SLAVE_PORT);
         rightMaster = new TalonSRX(RIGHT_MASTER_PORT);
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
-        pigeon = new PigeonIMU(rightSlave);
+        // pigeon = new PigeonIMU(rightSlave);
         configureTalons();
-        configurePigeon();
+        // configurePigeon();
         driveHelper = new DriveHelper(leftMaster, rightMaster);
         shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
-        odometry = new DifferentialDriveOdometry(getHeading());
+        // odometry = new DifferentialDriveOdometry(getHeading());
     }
 
     /**
@@ -94,10 +94,10 @@ public final class Drive extends SubsystemBase {
         rightSlave.setInverted(InvertType.FollowMaster);
     }
 
-    private void configurePigeon() {
-        pigeon.configFactoryDefault();
-        pigeon.setFusedHeading(0);
-    }
+    // private void configurePigeon() {
+    //     pigeon.configFactoryDefault();
+    //     pigeon.setFusedHeading(0);
+    // }
 
     public void setOpenLoop(double leftDemand, double rightDemand) {
         leftMaster.set(ControlMode.PercentOutput, leftDemand);
@@ -146,30 +146,30 @@ public final class Drive extends SubsystemBase {
         return rightMaster.getSelectedSensorVelocity();
     }*/
 
-    @Log.ToString
-    public Rotation2d getHeading() {
-        return Rotation2d.fromDegrees(Math.IEEEremainder(pigeon.getFusedHeading(), 360));
-    }
+    // @Log.ToString
+    // public Rotation2d getHeading() {
+    //     return Rotation2d.fromDegrees(Math.IEEEremainder(pigeon.getFusedHeading(), 360));
+    // }
 
     @Log
     public boolean isHighGear() {
         return shifter.get() == DoubleSolenoid.Value.kForward;
     }
 
-    @Log.ToString
-    public Pose2d getPose() {
-        return odometry.getPoseMeters();
-    }
+    // @Log.ToString
+    // public Pose2d getPose() {
+    //     return odometry.getPoseMeters();
+    // }
 
-    @Override
-    public void periodic() {
-        // TODO: Fix and add encoders
-        odometry.update(getHeading(), 0, 0);
-    }
+    // @Override
+    // public void periodic() {
+    //     // TODO: Fix and add encoders
+    //     odometry.update(getHeading(), 0, 0);
+    // }
 
     @Override
     public void resetSensors() {
-        pigeon.setFusedHeading(0);
+        // pigeon.setFusedHeading(0);
     }
 
     @Override
