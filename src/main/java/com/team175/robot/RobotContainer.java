@@ -104,7 +104,7 @@ public final class RobotContainer {
         // Align to target
         new XboxButton(driverController, AdvancedXboxController.Button.X)
                 .toggleWhenPressed(new LockOntoTarget(shooter, limelight))
-                .whenReleased(() -> shooter.setHoodAdjustOpenLoop(0), shooter);
+                .whenReleased(() -> shooter.setHoodPosition(0), shooter);
 
         // Toggle LED
         /*new XboxButton(driverController, AdvancedXboxController.Button.A)
@@ -193,8 +193,8 @@ public final class RobotContainer {
                 .whenPressed(shooter::resetSensors, shooter);
 
         new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
-                .whenPressed(() ->  shooter.setServoPosition(1), shooter)
-                .whenReleased(() ->  shooter.setServoPosition(0), shooter);
+                .whenPressed(() ->  shooter.setHoodOpenLoop(1), shooter)
+                .whenReleased(() ->  shooter.setHoodOpenLoop(0), shooter);
 
         // Turret Cardinals
         new XboxButton(driverController, AdvancedXboxController.DPad.UP)
@@ -207,11 +207,11 @@ public final class RobotContainer {
                 .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.WEST));
 
         new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
-                .whenPressed(() ->  shooter.setServoPosition(1), shooter)
-                .whenReleased(() ->  shooter.setServoPosition(0), shooter);
+                .whenPressed(() ->  shooter.setHoodPosition(1), shooter)
+                .whenReleased(() ->  shooter.setHoodPosition(0), shooter);
 
         new XboxButton(operatorController, AdvancedXboxController.Button.Y)
-                .whileHeld(() -> shooter.setHoodAdjustOpenLoop(1));
+                .whileHeld(() -> shooter.setHoodOpenLoop(1));
     }
 
     private void configureAutoChooser() {
