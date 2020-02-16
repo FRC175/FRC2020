@@ -34,11 +34,11 @@ public class RotateTurretToFieldOrientedCardinal extends CommandBase {
                 .rotateBy(cardinal.toRotation2d())
                 .rotateBy(shooter.getTurretHeading());*/
 
-        Rotation2d heading = drive.getHeading()
-                .rotateBy(shooter.getTurretHeading())
-                .unaryMinus()
-                .rotateBy(cardinal.toRotation2d())
-                .rotateBy(shooter.getTurretHeading());
+        // Rotation2d heading = drive.getHeading()
+        //         .rotateBy(shooter.getTurretHeading())
+        //         .unaryMinus()
+        //         .rotateBy(cardinal.toRotation2d())
+        //         .rotateBy(shooter.getTurretHeading());
 
         // TODO: Adjust heading to accommodate for lack of full 360 rotation (i.e. software limits)
         /*if (mGoal.state.turret < Constants.kTurretConstants.kMinUnitsLimit) {
@@ -47,7 +47,7 @@ public class RotateTurretToFieldOrientedCardinal extends CommandBase {
         if (mGoal.state.turret > Constants.kTurretConstants.kMaxUnitsLimit) {
             mGoal.state.turret -= 360.0;
         }*/
-        shooter.setTurretHeading(heading);
+        // shooter.setTurretHeading(heading);
     }
 
     @Override
