@@ -9,7 +9,7 @@ import io.github.oblarg.oblog.annotations.Config;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
- * Limelight represents the limelight vision processing unit on the robot.
+ * Limelight represents the vision processing unit. It is composed of 1 Limelight camera.
  */
 public final class Limelight extends SubsystemBase {
 

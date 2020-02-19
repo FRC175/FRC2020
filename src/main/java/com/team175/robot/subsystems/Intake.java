@@ -2,15 +2,16 @@ package com.team175.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
-import com.revrobotics.SparkMax;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.PWM;
 import io.github.oblarg.oblog.annotations.Log;
 
+/**
+ * Intake represents the intake and ball indexing mechanism. It is composed of 1 NEO 550 brushless motor, 2 775-Pro
+ * motors (controlled by Victor SPX motor controllers), 2 pneumatic pistons, and 2 IR sensors.
+ */
 public final class Intake extends SubsystemBase {
 
     private final CANSparkMax roller;

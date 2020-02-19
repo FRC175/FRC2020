@@ -3,18 +3,20 @@ package com.team175.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.ControlType;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Solenoid;
 import io.github.oblarg.oblog.annotations.Config;
 import io.github.oblarg.oblog.annotations.Log;
 
+/**
+ * Shooter represents the shooting mechanism and turret. It is composed of 3 775-Pro motors (all controlled by Talon
+ * SRX motor controllers) (two for the flywheel and one for the turret), 1 servo, and 1 pneumatic piston.
+ */
 public final class Shooter extends SubsystemBase {
 
     private final TalonSRX turret, shooterMaster, shooterSlave;

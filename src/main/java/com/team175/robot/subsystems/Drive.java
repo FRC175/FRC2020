@@ -4,21 +4,23 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
+import com.team175.robot.Robot;
 import com.team175.robot.utils.DriveHelper;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
- * Drive represents the drivetrain of the robot. It is composed of 4 cim motors (controlled with 4 Talon SRXs) and a
- * Pigeon gyro. This class is packed with documentation to better understand design choices and robot programming in
- * general.
+ * Drive represents the drivetrain. It is composed of 4 CIM motors (all controlled with Talon SRXs), a Pigeon gyro, and
+ * two pneumatic pistons. This class is packed with documentation to better understand design choices and robot
+ * programming in general.
  */
 public final class Drive extends SubsystemBase {
 
+    // These variables are final because they only need to be instantiated once (after all, you don't need to create a
+    // new left master TalonSRX).
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
     private final PigeonIMU gyro;
     private final DoubleSolenoid shifter;
@@ -95,28 +97,63 @@ public final class Drive extends SubsystemBase {
         rightSlave.setInverted(InvertType.FollowMaster);
     }
 
+    /**
+     * Helper method that configures the Pigeon gyro.
+     */
     private void configurePigeon() {
         gyro.configFactoryDefault();
         gyro.setFusedHeading(0);
     }
 
+    /**
+     * Sets the drive motors to a certain percent output (demand) using open loop control (no sensors in feedback loop).
+     *
+     * @param leftDemand The percent output for the left drive motors
+     * @param rightDemand The percent output for the right drive motors
+     */
     public void setOpenLoop(double leftDemand, double rightDemand) {
         leftMaster.set(ControlMode.PercentOutput, leftDemand);
         rightMaster.set(ControlMode.PercentOutput, rightDemand);
     }
 
+    /**
+     * Controls the drive motor using arcade controls - with a throttle and a turn.
+     *
+     * @param throttle The throttle from the controller
+     * @param turn The turn from the controller
+     */
     public void arcadeDrive(double throttle, double turn) {
         driveHelper.arcadeDrive(throttle, turn);
     }
 
+    /**
+     * "Cheesy Drive" simply means that the "turning" stick controls the curvature of the robot's path rather than its
+     * rate of heading change. This helps make the robot more controllable at high speeds. It also handles the robot's
+     * quick turn functionality - "quick turn" overrides constant-curvature turning for turn-in-place maneuvers.
+     *
+     * @param throttle The throttle from the controller
+     * @param turn The turn from the controller
+     * @param isQuickTurn Allow the robot to turn in place
+     */
     public void cheesyDrive(double throttle, double turn, boolean isQuickTurn) {
         driveHelper.cheesyDrive(throttle, turn, isQuickTurn, true);
     }
 
+    /**
+     * Shifts the robot between the two gears - high gear and low gear.
+     *
+     * @param shift Shift the robot to high gear
+     */
     public void shift(boolean shift) {
         shifter.set(shift ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
     }
 
+    /**
+     * Returns the current output as a percent of the left drive motors.
+     *
+     * @return Left motors' percent output
+     */
+    // The @Log is used in order to display this value on the Shuffleboard for testing
     @Log
     public double getLeftDemand() {
         return leftMaster.getMotorOutputPercent();
@@ -128,6 +165,11 @@ public final class Drive extends SubsystemBase {
     }
 
     /*@Log
+    public int getLeftPosition() {
+        return leftMaster.getSelectedSensorPosition();
+    }
+
+    @Log
     public int getLeftVelocity() {
         return leftMaster.getSelectedSensorVelocity();
     }*/
@@ -143,10 +185,21 @@ public final class Drive extends SubsystemBase {
     }
 
     /*@Log
+    public int getRightPosition() {
+        return rightMaster.getSelectedSensorPosition();
+    }
+
+    @Log
     public int getRightVelocity() {
         return rightMaster.getSelectedSensorVelocity();
     }*/
 
+    /**
+     * Returns the heading (angle) of the robot relative to its starting heading. It is returned as a {@link Rotation2d}
+     * because it is specifically designed to handle angles (rotations).
+     *
+     * @return Current heading
+     */
     @Log.ToString
     public Rotation2d getHeading() {
         return Rotation2d.fromDegrees(Math.IEEEremainder(gyro.getFusedHeading(), 360));
@@ -157,23 +210,40 @@ public final class Drive extends SubsystemBase {
         return shifter.get() == DoubleSolenoid.Value.kForward;
     }
 
+    /**
+     * Returns the pose (position and orientation) of the robot relative to its starting pose. This is calculated by
+     * the odometer, which uses forward kinematics to fuse the encoder readings from the the motors and the gyro
+     * reading.
+     *
+     * @return Current heading
+     */
     @Log.ToString
     public Pose2d getPose() {
         return odometer.getPoseMeters();
     }
 
+    /**
+     * Performs actions to run periodically (à la {@link Robot::teleopPeriodic()}). Feeds encoder and gyro readings to
+     * the odometer to update the pose of the robot relative to the field.
+     */
     @Override
     public void periodic() {
         // TODO: Fix and add encoders
         odometer.update(getHeading(), 0, 0);
     }
 
+    /**
+     * Resets all the sensors on the drivetrain including the encoders, gyro, and the odometer.
+     */
     @Override
     public void resetSensors() {
         gyro.setFusedHeading(0);
         odometer.resetPosition(new Pose2d(), getHeading());
     }
 
+    /**
+     * Runs a self-test on the motors of the drivetrain to ensure that they are performing properly.
+     */
     @Override
     public boolean checkIntegrity() {
         return false;

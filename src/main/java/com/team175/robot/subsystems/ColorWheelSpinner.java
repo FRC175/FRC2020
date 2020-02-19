@@ -12,6 +12,10 @@ import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.util.Color;
 import io.github.oblarg.oblog.annotations.Log;
 
+/**
+ * ColorWheelSpinner represents the device that spins the Control Panel. It is composed of 1 755-Pro motor (controlled
+ * by a TalonSRX), a pneumatic piston, and a color sensor.
+ */
 public final class ColorWheelSpinner extends SubsystemBase {
 
     private final TalonSRX spinner;
