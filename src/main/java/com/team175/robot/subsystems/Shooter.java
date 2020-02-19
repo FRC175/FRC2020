@@ -23,12 +23,14 @@ public final class Shooter extends SubsystemBase {
     private final MotionMagicGains turretGains;
 
     private int turretSetpoint;
+    private int shooterSetpoint;
+    private int hoodSetpoint;
 
     private static final int PCM_PORT = 17;
     private static final int TURRET_PORT = 11;
     private static final int SHOOTER_MASTER_PORT = 13;
     private static final int SHOOTER_SLAVE_PORT = 12;
-    private static final int HOOD_PORT = 0;
+    private static final int HOOD_PORT = 4;
     private static final int BALL_GATE_CHANNEL = 6;
     private static final int TURRET_DEADBAND = 5;
     private static final int COUNTS_PER_REVOLUTION = 4096; // TODO: Fix
@@ -58,6 +60,7 @@ public final class Shooter extends SubsystemBase {
         turret.configFactoryDefault();
         turret.setInverted(false);
         turret.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+        // turret.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute);
         turret.setSensorPhase(true);
         // TODO: Comment out in real robot
         turret.setSelectedSensorPosition(0);
@@ -66,7 +69,7 @@ public final class Shooter extends SubsystemBase {
         shooterSlave.configFactoryDefault();
         shooterSlave.follow(shooterMaster);
 
-        // Homing
+        // TODO: Homing position
         // setTurretAngle(0);
     }
 
@@ -82,6 +85,17 @@ public final class Shooter extends SubsystemBase {
 
     private Rotation2d countsToDegrees(double position) {
         return Rotation2d.fromDegrees(position * (360.0 / COUNTS_PER_REVOLUTION));
+    }
+
+    /**
+     * @return Velocity in sensor units per 100 ms
+     */
+    private int rpmToTalonVelocity(int rpm) {
+        return rpm;
+    }
+
+    private int talonVelocityToRPM(int velocity) {
+        return velocity;
     }
 
     public void setTurretOpenLoop(double demand) {
@@ -121,6 +135,10 @@ public final class Shooter extends SubsystemBase {
 
     public void setBallGate(boolean allowBalls) {
         ballGate.set(allowBalls);
+    }
+
+    private int getTurretSetpoint() {
+        return turretSetpoint;
     }
 
     @Log

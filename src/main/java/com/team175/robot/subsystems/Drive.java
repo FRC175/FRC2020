@@ -8,6 +8,7 @@ import com.team175.robot.utils.DriveHelper;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import io.github.oblarg.oblog.annotations.Log;
 
@@ -22,13 +23,13 @@ public final class Drive extends SubsystemBase {
     private final PigeonIMU gyro;
     private final DoubleSolenoid shifter;
     private final DriveHelper driveHelper;
-    private final DifferentialDriveOdometry odometry;
+    private final DifferentialDriveOdometry odometer;
 
     private static final int PCM_PORT = 17;
     private static final int LEFT_MASTER_PORT = 2;
     private static final int LEFT_SLAVE_PORT = 1;
-    private static final int RIGHT_MASTER_PORT = 4;
-    private static final int RIGHT_SLAVE_PORT = 3;
+    private static final int RIGHT_MASTER_PORT = 15;
+    private static final int RIGHT_SLAVE_PORT = 14;
     private static final int SHIFTER_FORWARD_CHANNEL = 0;
     private static final int SHIFTER_REVERSE_CHANNEL = 1;
 
@@ -47,12 +48,12 @@ public final class Drive extends SubsystemBase {
         leftSlave = new TalonSRX(LEFT_SLAVE_PORT);
         rightMaster = new TalonSRX(RIGHT_MASTER_PORT);
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
-        gyro = new PigeonIMU(rightSlave);
+        gyro = new PigeonIMU(leftSlave);
         shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
         configureTalons();
         configurePigeon();
         driveHelper = new DriveHelper(leftMaster, rightMaster);
-        odometry = new DifferentialDriveOdometry(getHeading());
+        odometer = new DifferentialDriveOdometry(getHeading());
     }
 
     /**
@@ -112,8 +113,8 @@ public final class Drive extends SubsystemBase {
         driveHelper.cheesyDrive(throttle, turn, isQuickTurn, true);
     }
 
-    public void setHighGear(boolean enable) {
-        shifter.set(enable ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+    public void shift(boolean shift) {
+        shifter.set(shift ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
     }
 
     @Log
@@ -152,24 +153,25 @@ public final class Drive extends SubsystemBase {
     }
 
     @Log
-    public boolean isHighGear() {
+    public boolean isInHighGear() {
         return shifter.get() == DoubleSolenoid.Value.kForward;
     }
 
     @Log.ToString
     public Pose2d getPose() {
-        return odometry.getPoseMeters();
+        return odometer.getPoseMeters();
     }
 
     @Override
     public void periodic() {
         // TODO: Fix and add encoders
-        odometry.update(getHeading(), 0, 0);
+        odometer.update(getHeading(), 0, 0);
     }
 
     @Override
     public void resetSensors() {
         gyro.setFusedHeading(0);
+        odometer.resetPosition(new Pose2d(), getHeading());
     }
 
     @Override

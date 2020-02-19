@@ -16,9 +16,9 @@ public final class Intake extends SubsystemBase {
     private final CANSparkMax roller;
     private final VictorSPX indexerHorizontal, indexerVertical;
     private final DoubleSolenoid deployer;
+    private final DigitalInput intakeInSensor, intakeOutSensor;
 
-    private final DigitalInput intakeInSensor;
-    private final DigitalInput intakeOutSensor;
+    private boolean isBallPickedUp;
 
     private static final int PCM_PORT = 17;
     private static final int ROLLER_PORT = 6;
@@ -28,6 +28,7 @@ public final class Intake extends SubsystemBase {
     private static final int DEPLOYER_REVERSE_CHANNEL = 5;
     private static final int INTAKE_IN_PORT = 4;
     private static final int INTAKE_OUT_PORT = 8;
+    private static final double BALL_PICKED_UP_CURRENT = 10;
 
     private static Intake instance;
 
@@ -94,7 +95,17 @@ public final class Intake extends SubsystemBase {
 
     @Log
     public boolean isBallPickedUp() {
-        return true;
+        return isBallPickedUp;
+    }
+
+    @Override
+    public void periodic() {
+        /*if (roller.getOutputCurrent() >= BALL_PICKED_UP_CURRENT) {
+            // Blink LED
+            isBallPickedUp = true;
+        } else {
+            isBallPickedUp = false;
+        }*/
     }
 
     @Override

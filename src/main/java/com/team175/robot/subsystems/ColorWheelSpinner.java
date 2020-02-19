@@ -1,11 +1,12 @@
 package com.team175.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorMatchResult;
 import com.revrobotics.ColorSensorV3;
-
+import com.team175.robot.models.MotionMagicGains;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.util.Color;
@@ -17,11 +18,14 @@ public final class ColorWheelSpinner extends SubsystemBase {
     private final DoubleSolenoid deployer;
     private final ColorSensorV3 colorSensor;
     private final ColorMatch colorMatcher;
+    private final MotionMagicGains gains;
 
     private static final int PCM_PORT = 17;
     private static final int SPINNER_PORT = 5;
     private static final int DEPLOYER_FORWARD_CHANNEL = 2;
     private static final int DEPLOYER_REVERSE_CHANNEL = 3;
+    private static final int COUNTS_TO_SPIN_WHEEL = 10000; // TODO: Fix
+    private static final int ALLOWED_POSITION_DEVIATION = 50;
     private static final Color BLUE_TARGET = ColorMatch.makeColor(0.143, 0.427, 0.429);
     private static final Color GREEN_TARGET = ColorMatch.makeColor(0.197, 0.561, 0.240);
     private static final Color RED_TARGET = ColorMatch.makeColor(0.415, 0.412, 0.185);
@@ -35,6 +39,7 @@ public final class ColorWheelSpinner extends SubsystemBase {
         colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
         colorMatcher = new ColorMatch();
         configureTalons();
+        gains = new MotionMagicGains(1.5, 0, 0, 0, 0, 0, spinner);
         configureColorSensor();
     }
 
@@ -48,6 +53,8 @@ public final class ColorWheelSpinner extends SubsystemBase {
 
     private void configureTalons() {
         spinner.configFactoryDefault();
+        spinner.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+        spinner.setSelectedSensorPosition(0);
     }
 
     private void configureColorSensor() {
@@ -59,6 +66,14 @@ public final class ColorWheelSpinner extends SubsystemBase {
 
     public void setOpenLoop(double demand) {
         spinner.set(ControlMode.PercentOutput, demand);
+    }
+
+    private void setPosition(int position) {
+        spinner.set(ControlMode.Position, position);
+    }
+
+    public void spinWheel() {
+        setPosition(COUNTS_TO_SPIN_WHEEL);
     }
 
     public void deploy(boolean deploy) {
@@ -107,12 +122,17 @@ public final class ColorWheelSpinner extends SubsystemBase {
         return colorMatcher.matchClosestColor(colorSensor.getColor());
     }
 
-    private Color getColorMatch() {
+    @Log
+    private double getColorMatchConfidence() {
+        return getColorMatchResult().confidence;
+    }
+
+    public Color getColorMatch() {
         return getColorMatchResult().color;
     }
 
     @Log
-    private String getLoggableColorMatch() {
+    public String getStringColorMatch() {
         String color;
 
         if (getColorMatch() == BLUE_TARGET)
@@ -130,8 +150,12 @@ public final class ColorWheelSpinner extends SubsystemBase {
     }
 
     @Log
-    private double getColorMatchConfidence() {
-        return getColorMatchResult().confidence;
+    public int getPosition() {
+        return spinner.getSelectedSensorPosition();
+    }
+
+    public boolean hasSpunWheel() {
+        return spinner.getClosedLoopError() <= ALLOWED_POSITION_DEVIATION;
     }
 
     @Override

@@ -1,8 +1,6 @@
 package com.team175.robot;
 
-import com.team175.robot.commands.BlinkLED;
-import com.team175.robot.commands.LockOntoTarget;
-import com.team175.robot.commands.RotateTurretToFieldOrientedCardinal;
+import com.team175.robot.commands.*;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
 import com.team175.robot.subsystems.Intake;
@@ -85,13 +83,14 @@ public final class RobotContainer {
     private void configureDefaultCommands() {
         // Arcade Drive
         drive.setDefaultCommand(
-                new RunCommand(
+                new StartEndCommand(
                         () -> drive.arcadeDrive(
                                 driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft),
                                 driverController.getX(GenericHID.Hand.kLeft)
                         ),
+                        () -> drive.arcadeDrive(0, 0),
                         drive
-                ).andThen(() -> drive.arcadeDrive(0, 0), drive)
+                )
         );
     }
 
@@ -101,78 +100,120 @@ public final class RobotContainer {
      * and then passing it to a {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
      */
     private void configureButtonBindings() {
-        // Align to target
+        // ----------------------------------------------------------------------------------------------------
+        // DRIVE
+        // ----------------------------------------------------------------------------------------------------
+        // Shift gears
         new XboxButton(driverController, AdvancedXboxController.Button.X)
-                .toggleWhenPressed(new LockOntoTarget(shooter, limelight))
-                .whenReleased(() -> shooter.setHoodPosition(0), shooter);
+                .whileHeld(() -> drive.shift(true), drive)
+                .whenReleased(() -> drive.shift(false), drive);
 
-        // Toggle LED
-        /*new XboxButton(driverController, AdvancedXboxController.Button.A)
-                .toggleWhenPressed(new InstantCommand() {
-                    private boolean toggle = true;
-
-                    @Override
-                    public void initialize() {
-                        toggle = !toggle;
-                        limelight.setLED(toggle);
-                    }
-                });*/
-
-        // Blink LED
-        new XboxButton(driverController, AdvancedXboxController.Button.B)
-                .whenPressed(new BlinkLED(led, Color.kGreen));
-
+        // ----------------------------------------------------------------------------------------------------
+        // INTAKE
+        // ----------------------------------------------------------------------------------------------------
         // Intake control
         new XboxButton(operatorController, AdvancedXboxController.Button.A)
                 .whileHeld(() -> intake.setRollerOpenLoop(1), intake)
-                .whenPressed(() -> intake.setIndexerOpenLoop(1), intake);
-
-        // Indexer toggle
-        new XboxButton(operatorController, AdvancedXboxController.Button.X)
-                .toggleWhenPressed(new FunctionalCommand(
-                        () -> {},
+                .whenPressed(() -> intake.setIndexerOpenLoop(1), intake)
+                .whenReleased(() -> intake.setRollerOpenLoop(0), intake);
+        // Toggle indexer
+        new XboxButton(operatorController, AdvancedXboxController.Button.Y)
+                .toggleWhenPressed(new StartEndCommand(
                         () -> intake.setIndexerOpenLoop(1),
-                        (finished) -> intake.setIndexerOpenLoop(0),
-                        () -> false,
+                        () -> intake.setIndexerOpenLoop(0),
                         intake
                 ));
-
+        // Reverse intake subsystem
         new XboxButton(operatorController, AdvancedXboxController.Button.Y)
-                .whileHeld(() -> {
-                    intake.setIndexerOpenLoop(-1);
-                    intake.setRollerOpenLoop(-1);
-                }, intake)
-                .whenReleased(() -> {
-                    intake.setIndexerOpenLoop(0);
-                    intake.setRollerOpenLoop(0);
-                }, intake);
+                .whileHeld(
+                        () -> {
+                            intake.setIndexerOpenLoop(-1);
+                            intake.setRollerOpenLoop(-1);
+                        },
+                        intake
+                )
+                .whenReleased(
+                        () -> {
+                            intake.setIndexerOpenLoop(0);
+                            intake.setRollerOpenLoop(0);
+                        },
+                        intake
+                );
 
-
-        // Deploy/retract color wheel device
-        new XboxButton(operatorController, AdvancedXboxController.Button.LEFT_BUMPER)
-                .whenPressed(() -> colorWheelSpinner.deploy(!colorWheelSpinner.isDeployed()), colorWheelSpinner);
-
-        // Manual color wheel control
-        new XboxButton(driverController, AdvancedXboxController.Button.B)
-                .whileHeld(() -> colorWheelSpinner.setOpenLoop(1), colorWheelSpinner)
-                .whenReleased(() -> colorWheelSpinner.setOpenLoop(0), colorWheelSpinner);
-
-        // Shift gears
-        new XboxButton(driverController, AdvancedXboxController.Button.X)
-                .whileHeld(() -> drive.setHighGear(true), drive)
-                .whenReleased(() -> drive.setHighGear(false), drive);
-
+        // ----------------------------------------------------------------------------------------------------
+        // SHOOTER
+        // ----------------------------------------------------------------------------------------------------
         // Manual Turret Control
         new XboxButton(operatorController, AdvancedXboxController.Button.RIGHT_BUMPER)
                 .whileHeld(new RunCommand(
-                        () -> {
-                            shooter.setTurretOpenLoop(operatorController.getX(GenericHID.Hand.kRight));
-                            shooter.setShooterOpenLoop(operatorController.getY(GenericHID.Hand.kRight));
-                        },
+                        () -> shooter.setTurretOpenLoop(operatorController.getX(GenericHID.Hand.kRight)),
                         shooter
                 ))
                 .whenReleased(() -> shooter.setTurretOpenLoop(0), shooter);
+        // Align to target
+        new XboxButton(operatorController, AdvancedXboxController.Trigger.LEFT)
+                .toggleWhenPressed(new LockOntoTarget(shooter, limelight))
+                .whenReleased(() -> shooter.setHoodPosition(0), shooter);
+        // Auto shoot
+        new XboxButton(operatorController, AdvancedXboxController.Trigger.RIGHT)
+                .whenPressed(new LogCommand("Pew pew"));
+                // .toggleWhenPressed();
+        // Turret Cardinals
+        new XboxButton(operatorController, AdvancedXboxController.DPad.UP)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.NORTH));
+        new XboxButton(operatorController, AdvancedXboxController.DPad.RIGHT)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.EAST));
+        new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.SOUTH));
+        new XboxButton(operatorController, AdvancedXboxController.DPad.LEFT)
+                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.WEST));
 
+        // ----------------------------------------------------------------------------------------------------
+        // COLOR WHEEL SPINNER
+        // ----------------------------------------------------------------------------------------------------
+        // Deploy/retract color wheel spinner
+        new XboxButton(operatorController, AdvancedXboxController.Button.A)
+                .whenPressed(new ConditionalCommand(
+                        new InstantCommand(colorWheelSpinner::deploy, colorWheelSpinner),
+                        new InstantCommand(colorWheelSpinner::retract, colorWheelSpinner),
+                        () -> !colorWheelSpinner.isDeployed()
+                ));
+        // Rotate wheel three times
+        new XboxButton(operatorController, AdvancedXboxController.Button.X)
+                .toggleWhenPressed(new FunctionalCommand(
+                        colorWheelSpinner::spinWheel,
+                        () -> {},
+                        (interrupted) -> colorWheelSpinner.setOpenLoop(0),
+                        colorWheelSpinner::hasSpunWheel,
+                        colorWheelSpinner
+                ));
+        // Spin to color
+        new XboxButton(operatorController, AdvancedXboxController.Button.B)
+                .toggleWhenPressed(new SpinColorWheelToColor(colorWheelSpinner));
+
+        // ----------------------------------------------------------------------------------------------------
+        // CLIMBER
+        // ----------------------------------------------------------------------------------------------------
+        // Deploy/retract climber
+        new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
+                .whenPressed(new ConditionalCommand(
+                        new InstantCommand(climber::deploy, climber),
+                        new InstantCommand(climber::retract, climber),
+                        () -> !climber.isDeployed()
+                ));
+        // Winch up
+        new XboxButton(driverController, AdvancedXboxController.DPad.UP)
+                .whileHeld(() -> climber.setWinchOpenLoop(0.75), climber)
+                .whenReleased(() -> climber.setWinchOpenLoop(0), climber);
+        // Winch down
+        new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
+                .whileHeld(() -> climber.setWinchOpenLoop(-0.75), climber)
+                .whenReleased(() -> climber.setWinchOpenLoop(0), climber);
+
+        // ----------------------------------------------------------------------------------------------------
+        // OLD
+        // ----------------------------------------------------------------------------------------------------
+        /*
         // Manual winch
         new XboxButton(driverController, AdvancedXboxController.Button.RIGHT_BUMPER)
                 .whileHeld(new RunCommand(
@@ -184,34 +225,7 @@ public final class RobotContainer {
         // Deploy/retract ball gate
         new XboxButton(operatorController, AdvancedXboxController.DPad.UP)
                 .whenPressed(() -> shooter.setBallGate(!shooter.getBallGate()), shooter);
-
-        // Deploy/retract winch
-        new XboxButton(driverController, AdvancedXboxController.Button.LEFT_BUMPER)
-                .whenPressed(() -> climber.deploy(!climber.isDeployed()), climber);
-        // Reset Shooter sensors
-        new XboxButton(driverController, AdvancedXboxController.Button.LEFT_BUMPER)
-                .whenPressed(shooter::resetSensors, shooter);
-
-        new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
-                .whenPressed(() ->  shooter.setHoodOpenLoop(1), shooter)
-                .whenReleased(() ->  shooter.setHoodOpenLoop(0), shooter);
-
-        // Turret Cardinals
-        new XboxButton(driverController, AdvancedXboxController.DPad.UP)
-                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.NORTH));
-        new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
-                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.EAST));
-        new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
-                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.SOUTH));
-        new XboxButton(driverController, AdvancedXboxController.DPad.LEFT)
-                .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.WEST));
-
-        new XboxButton(operatorController, AdvancedXboxController.DPad.DOWN)
-                .whenPressed(() ->  shooter.setHoodPosition(1), shooter)
-                .whenReleased(() ->  shooter.setHoodPosition(0), shooter);
-
-        new XboxButton(operatorController, AdvancedXboxController.Button.Y)
-                .whileHeld(() -> shooter.setHoodOpenLoop(1));
+        */
     }
 
     private void configureAutoChooser() {
