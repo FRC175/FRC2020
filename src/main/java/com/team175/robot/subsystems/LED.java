@@ -15,7 +15,7 @@ public final class LED extends SubsystemBase {
 
     private LED() {
         controller = new CANifier(CANIFIER_PORT);
-        configCANifier();
+        configureCANifier();
     }
 
     public static LED getInstance() {
@@ -26,7 +26,7 @@ public final class LED extends SubsystemBase {
         return instance;
     }
 
-    private void configCANifier() {
+    private void configureCANifier() {
         controller.configFactoryDefault();
         setColor(Color.kBlue);
     }

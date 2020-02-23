@@ -21,8 +21,8 @@ public final class Climber extends SubsystemBase {
     private Climber() {
         winchMaster = new CANSparkMax(WINCH_MASTER_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         winchSlave = new CANSparkMax(WINCH_SLAVE_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
-        deployer = new Solenoid(PCM_PORT, DEPLOYER_CHANNEL);
         configureSparkMaxes();
+        deployer = new Solenoid(PCM_PORT, DEPLOYER_CHANNEL);
     }
 
     public static Climber getInstance() {

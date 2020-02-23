@@ -200,7 +200,7 @@ public final class Drive extends SubsystemBase {
      *
      * @return Current heading
      */
-    @Log.ToString
+    @Log(methodName = "getDegrees")
     public Rotation2d getHeading() {
         return Rotation2d.fromDegrees(Math.IEEEremainder(gyro.getFusedHeading(), 360));
     }

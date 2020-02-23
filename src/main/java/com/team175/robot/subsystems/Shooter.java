@@ -4,7 +4,6 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.ControlType;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
@@ -19,7 +18,7 @@ import io.github.oblarg.oblog.annotations.Log;
  */
 public final class Shooter extends SubsystemBase {
 
-    private TalonSRX turret, shooterMaster, shooterSlave;
+    private TalonSRX turret, flywheelMaster, flywheelSlave;
     private CANSparkMax hood;
     private Solenoid ballGate;
     private final MotionMagicGains turretGains;
@@ -30,8 +29,8 @@ public final class Shooter extends SubsystemBase {
 
     private static final int PCM_PORT = 18;
     private static final int TURRET_PORT = 11;
-    private static final int SHOOTER_MASTER_PORT = 13;
-    private static final int SHOOTER_SLAVE_PORT = 12;
+    private static final int FLYWHEEL_MASTER_PORT = 13;
+    private static final int FLYWHEEL_SLAVE_PORT = 12;
     private static final int HOOD_PORT = 4;
     private static final int BALL_GATE_CHANNEL = 6;
     private static final int TURRET_DEADBAND = 5;
@@ -41,11 +40,12 @@ public final class Shooter extends SubsystemBase {
 
     private Shooter() {
         turret = new TalonSRX(TURRET_PORT);
-        /*shooterMaster = new TalonSRX(SHOOTER_MASTER_PORT);
-        shooterSlave = new TalonSRX(SHOOTER_SLAVE_PORT);*/
-        // hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
-        // ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
+        /*flywheelMaster = new TalonSRX(FLYWHEEL_MASTER_PORT);
+        flywheelSlave = new TalonSRX(FLYWHEEL_SLAVE_PORT);*/
         configureTalons();
+        // hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        configureSparkMax();
+        // ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
     }
 
@@ -66,10 +66,11 @@ public final class Shooter extends SubsystemBase {
         turret.setSensorPhase(true);
         // TODO: Comment out in real robot
         turret.setSelectedSensorPosition(0);
+        // TODO: Add
         // turret.configAllowableClosedloopError(0, degreesToCounts(TURRET_DEADBAND));
-        /*shooterMaster.configFactoryDefault();
-        shooterSlave.configFactoryDefault();
-        shooterSlave.follow(shooterMaster);*/
+        flywheelMaster.configFactoryDefault();
+        flywheelSlave.configFactoryDefault();
+        flywheelSlave.follow(flywheelMaster);
 
         // TODO: Homing position
         // setTurretAngle(0);
@@ -79,25 +80,6 @@ public final class Shooter extends SubsystemBase {
         // hood.restoreFactoryDefaults();
 
         // TODO: Homing position
-    }
-
-    private int degreesToCounts(Rotation2d heading) {
-        return (int) (heading.getDegrees() * (COUNTS_PER_REVOLUTION / 360.0));
-    }
-
-    private Rotation2d countsToDegrees(double position) {
-        return Rotation2d.fromDegrees(position * (360.0 / COUNTS_PER_REVOLUTION));
-    }
-
-    /**
-     * @return Velocity in sensor units per 100 ms
-     */
-    private int rpmToTalonVelocity(int rpm) {
-        return rpm;
-    }
-
-    private int talonVelocityToRPM(int velocity) {
-        return velocity;
     }
 
     public void setTurretOpenLoop(double demand) {
@@ -123,8 +105,8 @@ public final class Shooter extends SubsystemBase {
         setTurretHeading(cardinal.toRotation2d());
     }
 
-    public void setShooterOpenLoop(double demand) {
-        shooterMaster.set(ControlMode.PercentOutput, demand);
+    public void setFlywheelOpenLoop(double demand) {
+        flywheelMaster.set(ControlMode.PercentOutput, demand);
     }
 
     public void setHoodOpenLoop(double demand) {
@@ -139,6 +121,25 @@ public final class Shooter extends SubsystemBase {
         ballGate.set(allowBalls);
     }
 
+    private int degreesToCounts(Rotation2d heading) {
+        return (int) (heading.getDegrees() * (COUNTS_PER_REVOLUTION / 360.0));
+    }
+
+    private Rotation2d countsToDegrees(double position) {
+        return Rotation2d.fromDegrees(position * (360.0 / COUNTS_PER_REVOLUTION));
+    }
+
+    /**
+     * @return Velocity in sensor units per 100 ms
+     */
+    private int rpmToTalonVelocity(int rpm) {
+        return rpm;
+    }
+
+    private int talonVelocityToRPM(int velocity) {
+        return velocity;
+    }
+
     private int getTurretSetpoint() {
         return turretSetpoint;
     }
@@ -148,13 +149,13 @@ public final class Shooter extends SubsystemBase {
         return turret.getSelectedSensorPosition();
     }
 
-    @Log.ToString
+    @Log(methodName = "getDegrees")
     public Rotation2d getTurretHeading() {
         return countsToDegrees(getTurretPosition());
     }
 
     /*@Log
-    private double getShooterDemand() {
+    private double getFlywheelDemand() {
         return shooterMaster.getMotorOutputPercent();
     }
 
