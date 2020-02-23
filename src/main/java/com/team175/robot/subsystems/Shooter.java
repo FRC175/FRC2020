@@ -7,6 +7,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.ControlType;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Solenoid;
 import io.github.oblarg.oblog.annotations.Config;
@@ -24,7 +25,7 @@ public final class Shooter extends SubsystemBase {
     private final MotionMagicGains turretGains;
 
     private int turretSetpoint;
-    private int shooterSetpoint;
+    private int flywheelSetpoint;
     private int hoodSetpoint;
 
     private static final int PCM_PORT = 18;
@@ -43,6 +44,7 @@ public final class Shooter extends SubsystemBase {
         /*flywheelMaster = new TalonSRX(FLYWHEEL_MASTER_PORT);
         flywheelSlave = new TalonSRX(FLYWHEEL_SLAVE_PORT);*/
         configureTalons();
+        // hood = new Servo(HOOD_PORT);
         // hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         configureSparkMax();
         // ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
@@ -156,7 +158,7 @@ public final class Shooter extends SubsystemBase {
 
     /*@Log
     private double getFlywheelDemand() {
-        return shooterMaster.getMotorOutputPercent();
+        return flywheelMaster.getMotorOutputPercent();
     }
 
     @Log
