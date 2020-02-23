@@ -34,10 +34,10 @@ public final class RobotContainer {
     private final Drive drive;
     private final Limelight limelight;
     private final Shooter shooter;
-    /*private final ColorWheelSpinner colorWheelSpinner;
+    private final ColorWheelSpinner colorWheelSpinner;
     private final Intake intake;
     private final Climber climber;
-    private final LED led;*/
+    private final LED led;
     private final AdvancedXboxController driverController, operatorController;
     private final SendableChooser<Command> autoChooser;
     private final Logger logger;
@@ -57,10 +57,10 @@ public final class RobotContainer {
         drive = Drive.getInstance();
         limelight = Limelight.getInstance();
         shooter = Shooter.getInstance();
-        /*colorWheelSpinner = ColorWheelSpinner.getInstance();
+        colorWheelSpinner = ColorWheelSpinner.getInstance();
         intake = Intake.getInstance();
         climber = Climber.getInstance();
-        led = LED.getInstance();*/
+        led = LED.getInstance();
         driverController = new AdvancedXboxController(DRIVER_CONTROLLER_PORT, CONTROLLER_DEADBAND);
         operatorController = new AdvancedXboxController(OPERATOR_CONTROLLER_PORT, CONTROLLER_DEADBAND);
         autoChooser = new SendableChooser<>();
@@ -103,15 +103,15 @@ public final class RobotContainer {
         // DRIVE
         // ----------------------------------------------------------------------------------------------------
         // Shift gears
-        /*new XboxButton(driverController, AdvancedXboxController.Button.X)
+        new XboxButton(driverController, AdvancedXboxController.Button.X)
                 .whileHeld(() -> drive.shift(true), drive)
-                .whenReleased(() -> drive.shift(false), drive);*/
+                .whenReleased(() -> drive.shift(false), drive);
 
         // ----------------------------------------------------------------------------------------------------
         // INTAKE
         // ----------------------------------------------------------------------------------------------------
         // Intake control
-        /*new XboxButton(driverController, AdvancedXboxController.Button.A)
+        new XboxButton(driverController, AdvancedXboxController.Button.A)
                 .whileHeld(() -> intake.setRollerOpenLoop(0.1), intake)
                 .whenPressed(() -> intake.setIndexerOpenLoop(1), intake)
                 .whenReleased(() -> intake.setRollerOpenLoop(0), intake);
@@ -137,7 +137,7 @@ public final class RobotContainer {
                             intake.setRollerOpenLoop(0);
                         },
                         intake
-                );*/
+                );
 
         // ----------------------------------------------------------------------------------------------------
         // SHOOTER
@@ -170,7 +170,7 @@ public final class RobotContainer {
         // COLOR WHEEL SPINNER
         // ----------------------------------------------------------------------------------------------------
         // Deploy/retract color wheel spinner
-        /*new XboxButton(operatorController, AdvancedXboxController.Button.A)
+        new XboxButton(operatorController, AdvancedXboxController.Button.A)
                 .whenPressed(new ConditionalCommand(
                         new InstantCommand(colorWheelSpinner::deploy, colorWheelSpinner),
                         new InstantCommand(colorWheelSpinner::retract, colorWheelSpinner),
@@ -187,13 +187,13 @@ public final class RobotContainer {
                 ));
         // Spin to color
         new XboxButton(operatorController, AdvancedXboxController.Button.B)
-                .toggleWhenPressed(new SpinColorWheelToColor(colorWheelSpinner));*/
+                .toggleWhenPressed(new SpinColorWheelToColor(colorWheelSpinner));
 
         // ----------------------------------------------------------------------------------------------------
         // CLIMBER
         // ----------------------------------------------------------------------------------------------------
         // Deploy/retract climber
-        /*new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
+        new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
                 .whenPressed(new ConditionalCommand(
                         new InstantCommand(climber::deploy, climber),
                         new InstantCommand(climber::retract, climber),
@@ -206,7 +206,7 @@ public final class RobotContainer {
         // Winch down
         new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
                 .whileHeld(() -> climber.setWinchOpenLoop(-0.75), climber)
-                .whenReleased(() -> climber.setWinchOpenLoop(0), climber);*/
+                .whenReleased(() -> climber.setWinchOpenLoop(0), climber);
 
         // ----------------------------------------------------------------------------------------------------
         // OLD
@@ -254,6 +254,11 @@ public final class RobotContainer {
                     logger.debug("{} finished.", command.getName());
                 }
         );
+    }
+
+    public boolean checkRobotIntegrity() {
+        drive.checkIntegrity();
+        return true;
     }
 
     /**

@@ -5,8 +5,8 @@ import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
 /**
- * LockOntoTarget is essentially the same as {@link LockOntoTarget} except the command cannot end on its own (i.e. it
- * never "ends").
+ * LockOntoTarget is essentially the same as {@link RotateTurretToTarget} except the command cannot end on its own (i.e.
+ * it never "ends").
  */
 public final class LockOntoTarget extends CommandBase {
 
@@ -16,7 +16,7 @@ public final class LockOntoTarget extends CommandBase {
     public LockOntoTarget(Shooter shooter, Limelight limelight) {
         this.shooter = shooter;
         this.limelight = limelight;
-        addRequirements(this.shooter, this.limelight);
+        addRequirements(shooter, limelight);
     }
 
     @Override
@@ -29,14 +29,12 @@ public final class LockOntoTarget extends CommandBase {
     public void execute() {
         limelight.calculateRotation();
         shooter.setTurretOpenLoop(limelight.getRotation());
-        // shooter.setHoodOpenLoop(0.5);
     }
 
     @Override
     public void end(boolean interrupted) {
         limelight.setDriverMode();
         shooter.setTurretOpenLoop(0);
-        // shooter.setHoodOpenLoop(0);
     }
 
     @Override

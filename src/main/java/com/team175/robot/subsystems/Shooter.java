@@ -120,6 +120,7 @@ public final class Shooter extends SubsystemBase {
     }
 
     public void setBallGate(boolean allowBalls) {
+        logger.info("{} ball gate", allowBalls ? "Retracting" : "Deploying");
         ballGate.set(allowBalls);
     }
 

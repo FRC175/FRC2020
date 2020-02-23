@@ -5,6 +5,7 @@ import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.team175.robot.Robot;
+import com.team175.robot.utils.CTREDiagnostics;
 import com.team175.robot.utils.DriveHelper;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
@@ -53,7 +54,7 @@ public final class Drive extends SubsystemBase {
         configureTalons();
         gyro = new PigeonIMU(rightSlave);
         configurePigeon();
-        // shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
+        shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
         driveHelper = new DriveHelper(leftMaster, rightMaster);
         odometer = new DifferentialDriveOdometry(getHeading());
     }
@@ -205,10 +206,10 @@ public final class Drive extends SubsystemBase {
         return Rotation2d.fromDegrees(Math.IEEEremainder(gyro.getFusedHeading(), 360));
     }
 
-    /*@Log
+    // @Log
     public boolean isInHighGear() {
         return shifter.get() == DoubleSolenoid.Value.kForward;
-    }*/
+    }
 
     /**
      * Returns the pose (position and orientation) of the robot relative to its starting pose. This is calculated by
@@ -246,7 +247,9 @@ public final class Drive extends SubsystemBase {
      */
     @Override
     public boolean checkIntegrity() {
-        return false;
+        CTREDiagnostics leftMotorTest = new CTREDiagnostics(leftMaster, "DriveLeftMaster");
+        CTREDiagnostics rightMotorTest = new CTREDiagnostics(rightMaster, "DriveRightMaster");
+        return leftMotorTest.checkMotorController() && rightMotorTest.checkMotorController();
     }
 
 }

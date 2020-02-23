@@ -14,7 +14,7 @@ public final class RotateTurretToTarget extends CommandBase {
     public RotateTurretToTarget(Shooter shooter, Limelight limelight) {
         this.shooter = shooter;
         this.limelight = limelight;
-        addRequirements(this.shooter, this.limelight);
+        addRequirements(shooter, limelight);
     }
 
     @Override

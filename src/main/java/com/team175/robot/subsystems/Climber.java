@@ -44,6 +44,7 @@ public final class Climber extends SubsystemBase {
     }
 
     public void deploy(boolean deploy) {
+        logger.info("{} climber", deploy ? "Deploying" : "Retracting");
         deployer.set(deploy);
     }
 
@@ -55,7 +56,7 @@ public final class Climber extends SubsystemBase {
         deploy(false);
     }
 
-    @Log
+    // @Log
     public boolean isDeployed() {
         return deployer.get();
     }
