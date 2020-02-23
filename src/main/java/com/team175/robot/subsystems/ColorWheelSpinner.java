@@ -24,7 +24,7 @@ public final class ColorWheelSpinner extends SubsystemBase {
     private final ColorMatch colorMatcher;
     private final MotionMagicGains gains;
 
-    private static final int PCM_PORT = 17;
+    private static final int PCM_PORT = 18;
     private static final int SPINNER_PORT = 5;
     private static final int DEPLOYER_FORWARD_CHANNEL = 2;
     private static final int DEPLOYER_REVERSE_CHANNEL = 3;
@@ -39,12 +39,12 @@ public final class ColorWheelSpinner extends SubsystemBase {
 
     private ColorWheelSpinner() {
         spinner = new TalonSRX(SPINNER_PORT);
+        configureTalons();
         deployer = new DoubleSolenoid(PCM_PORT, DEPLOYER_FORWARD_CHANNEL, DEPLOYER_REVERSE_CHANNEL);
         colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
         colorMatcher = new ColorMatch();
-        configureTalons();
-        gains = new MotionMagicGains(1.5, 0, 0, 0, 0, 0, spinner);
         configureColorSensor();
+        gains = new MotionMagicGains(1.5, 0, 0, 0, 0, 0, spinner);
     }
 
     public static ColorWheelSpinner getInstance() {

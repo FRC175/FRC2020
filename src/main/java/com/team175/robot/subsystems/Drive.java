@@ -23,11 +23,11 @@ public final class Drive extends SubsystemBase {
     // new left master TalonSRX).
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
     private final PigeonIMU gyro;
-    private final DoubleSolenoid shifter;
+    private DoubleSolenoid shifter;
     private final DriveHelper driveHelper;
     private final DifferentialDriveOdometry odometer;
 
-    private static final int PCM_PORT = 17;
+    private static final int PCM_PORT = 18;
     private static final int LEFT_MASTER_PORT = 2;
     private static final int LEFT_SLAVE_PORT = 1;
     private static final int RIGHT_MASTER_PORT = 15;
@@ -50,10 +50,10 @@ public final class Drive extends SubsystemBase {
         leftSlave = new TalonSRX(LEFT_SLAVE_PORT);
         rightMaster = new TalonSRX(RIGHT_MASTER_PORT);
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
-        gyro = new PigeonIMU(leftSlave);
-        shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
         configureTalons();
+        gyro = new PigeonIMU(rightSlave);
         configurePigeon();
+        // shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
         driveHelper = new DriveHelper(leftMaster, rightMaster);
         odometer = new DifferentialDriveOdometry(getHeading());
     }
@@ -205,10 +205,10 @@ public final class Drive extends SubsystemBase {
         return Rotation2d.fromDegrees(Math.IEEEremainder(gyro.getFusedHeading(), 360));
     }
 
-    @Log
+    /*@Log
     public boolean isInHighGear() {
         return shifter.get() == DoubleSolenoid.Value.kForward;
-    }
+    }*/
 
     /**
      * Returns the pose (position and orientation) of the robot relative to its starting pose. This is calculated by
