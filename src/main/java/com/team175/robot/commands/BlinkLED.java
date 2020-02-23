@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
-public class BlinkLED extends CommandBase {
+public final class BlinkLED extends CommandBase {
 
     private final LED led;
     private final Color blinkColor;

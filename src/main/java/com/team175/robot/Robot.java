@@ -17,7 +17,7 @@ import io.github.oblarg.oblog.Logger;
  * described in the TimedRobot documentation. If you change the name of this class or the package after creating this
  * project, you must also update the build.gradle file in the project.
  */
-public class Robot extends TimedRobot {
+public final class Robot extends TimedRobot {
 
     private RobotContainer robotContainer;
     private Command autoCommand;

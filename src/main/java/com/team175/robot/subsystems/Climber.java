@@ -1,28 +1,28 @@
 package com.team175.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel;
 import edu.wpi.first.wpilibj.Solenoid;
 import io.github.oblarg.oblog.annotations.Log;
 
 public final class Climber extends SubsystemBase {
 
-    private final VictorSPX winchMaster;
-            // , winchSlave;
+    private final CANSparkMax winchMaster, winchSlave;
     private final Solenoid deployer;
 
-    private static final int PCM_PORT = 17;
-    private static final int WINCH_MASTER_PORT = 14;
-    // private static final int WINCH_SLAVE_PORT = 15;
+    private static final int PCM_PORT = 18;
+    private static final int WINCH_MASTER_PORT = 10;
+    private static final int WINCH_SLAVE_PORT = 3;
     private static final int DEPLOYER_CHANNEL = 7;
 
     private static Climber instance;
 
     private Climber() {
-        winchMaster = new VictorSPX(WINCH_MASTER_PORT);
-        // winchSlave = new VictorSPX(WINCH_SLAVE_PORT);
+        winchMaster = new CANSparkMax(WINCH_MASTER_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        winchSlave = new CANSparkMax(WINCH_SLAVE_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         deployer = new Solenoid(PCM_PORT, DEPLOYER_CHANNEL);
-        configureVictors();
+        configureSparkMaxes();
     }
 
     public static Climber getInstance() {
@@ -33,14 +33,14 @@ public final class Climber extends SubsystemBase {
         return instance;
     }
 
-    private void configureVictors() {
-        winchMaster.configFactoryDefault();
-        // winchSlave.configFactoryDefault();
-        // winchSlave.follow(winchMaster);
+    private void configureSparkMaxes() {
+        winchMaster.restoreFactoryDefaults();
+        winchSlave.restoreFactoryDefaults();
+        winchSlave.follow(winchMaster);
     }
 
     public void setWinchOpenLoop(double demand) {
-        winchMaster.set(ControlMode.PercentOutput, demand);
+        winchMaster.set(demand);
     }
 
     public void deploy(boolean deploy) {

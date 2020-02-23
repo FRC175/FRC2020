@@ -21,7 +21,7 @@ public final class Intake extends SubsystemBase {
 
     private boolean isBallPickedUp;
 
-    private static final int PCM_PORT = 17;
+    private static final int PCM_PORT = 18;
     private static final int ROLLER_PORT = 6;
     private static final int INDEXER_HORIZONTAL_PORT = 8;
     private static final int INDEXER_VERTICAL_PORT = 9;
@@ -35,12 +35,13 @@ public final class Intake extends SubsystemBase {
 
     private Intake() {
         roller = new CANSparkMax(ROLLER_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        configureSparkMax();
         indexerHorizontal = new VictorSPX(INDEXER_HORIZONTAL_PORT);
         indexerVertical = new VictorSPX(INDEXER_VERTICAL_PORT);
+        configureVictors();
         deployer = new DoubleSolenoid(PCM_PORT, DEPLOYER_FORWARD_CHANNEL, DEPLOYER_REVERSE_CHANNEL);
         intakeInSensor = new DigitalInput(INTAKE_IN_PORT);
         intakeOutSensor = new DigitalInput(INTAKE_OUT_PORT);
-        configureVictors();
     }
 
     /*public boolean getIO() {
@@ -97,6 +98,11 @@ public final class Intake extends SubsystemBase {
     @Log
     public boolean isBallPickedUp() {
         return isBallPickedUp;
+    }
+
+    public boolean isIndexerMoving() {
+        return Math.abs(indexerHorizontal.getMotorOutputPercent()) > 0.2
+                && Math.abs(indexerVertical.getMotorOutputPercent()) > 0.2;
     }
 
     @Override

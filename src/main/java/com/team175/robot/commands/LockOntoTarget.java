@@ -29,14 +29,14 @@ public final class LockOntoTarget extends CommandBase {
     public void execute() {
         limelight.calculateRotation();
         shooter.setTurretOpenLoop(limelight.getRotation());
-        shooter.setHoodOpenLoop(0.5);
+        // shooter.setHoodOpenLoop(0.5);
     }
 
     @Override
     public void end(boolean interrupted) {
         limelight.setDriverMode();
         shooter.setTurretOpenLoop(0);
-        shooter.setHoodOpenLoop(0);
+        // shooter.setHoodOpenLoop(0);
     }
 
     @Override

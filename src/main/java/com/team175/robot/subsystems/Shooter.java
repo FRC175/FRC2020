@@ -19,16 +19,16 @@ import io.github.oblarg.oblog.annotations.Log;
  */
 public final class Shooter extends SubsystemBase {
 
-    private final TalonSRX turret, shooterMaster, shooterSlave;
-    private final CANSparkMax hood;
-    private final Solenoid ballGate;
+    private TalonSRX turret, shooterMaster, shooterSlave;
+    private CANSparkMax hood;
+    private Solenoid ballGate;
     private final MotionMagicGains turretGains;
 
     private int turretSetpoint;
     private int shooterSetpoint;
     private int hoodSetpoint;
 
-    private static final int PCM_PORT = 17;
+    private static final int PCM_PORT = 18;
     private static final int TURRET_PORT = 11;
     private static final int SHOOTER_MASTER_PORT = 13;
     private static final int SHOOTER_SLAVE_PORT = 12;
@@ -41,10 +41,10 @@ public final class Shooter extends SubsystemBase {
 
     private Shooter() {
         turret = new TalonSRX(TURRET_PORT);
-        shooterMaster = new TalonSRX(SHOOTER_MASTER_PORT);
-        shooterSlave = new TalonSRX(SHOOTER_SLAVE_PORT);
-        hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
-        ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
+        /*shooterMaster = new TalonSRX(SHOOTER_MASTER_PORT);
+        shooterSlave = new TalonSRX(SHOOTER_SLAVE_PORT);*/
+        // hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        // ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
         configureTalons();
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
     }
@@ -67,16 +67,16 @@ public final class Shooter extends SubsystemBase {
         // TODO: Comment out in real robot
         turret.setSelectedSensorPosition(0);
         // turret.configAllowableClosedloopError(0, degreesToCounts(TURRET_DEADBAND));
-        shooterMaster.configFactoryDefault();
+        /*shooterMaster.configFactoryDefault();
         shooterSlave.configFactoryDefault();
-        shooterSlave.follow(shooterMaster);
+        shooterSlave.follow(shooterMaster);*/
 
         // TODO: Homing position
         // setTurretAngle(0);
     }
 
     private void configureSparkMax() {
-        hood.restoreFactoryDefaults();
+        // hood.restoreFactoryDefaults();
 
         // TODO: Homing position
     }
@@ -153,7 +153,7 @@ public final class Shooter extends SubsystemBase {
         return countsToDegrees(getTurretPosition());
     }
 
-    @Log
+    /*@Log
     private double getShooterDemand() {
         return shooterMaster.getMotorOutputPercent();
     }
@@ -161,7 +161,7 @@ public final class Shooter extends SubsystemBase {
     @Log
     public boolean getBallGate() {
         return ballGate.get();
-    }
+    }*/
 
     @Override
     public void resetSensors() {

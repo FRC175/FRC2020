@@ -4,7 +4,7 @@ import com.team175.robot.subsystems.ColorWheelSpinner;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
-public class SpinColorWheelToColor extends CommandBase {
+public final class SpinColorWheelToColor extends CommandBase {
 
     private final ColorWheelSpinner colorWheelSpinner;
 

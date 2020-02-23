@@ -6,7 +6,7 @@ import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
-public class RotateTurretToFieldOrientedCardinal extends CommandBase {
+public final class RotateTurretToFieldOrientedCardinal extends CommandBase {
 
     private final Drive drive;
     private final Shooter shooter;
@@ -34,11 +34,11 @@ public class RotateTurretToFieldOrientedCardinal extends CommandBase {
                 .rotateBy(cardinal.toRotation2d())
                 .rotateBy(shooter.getTurretHeading());*/
 
-        // Rotation2d heading = drive.getHeading()
-        //         .rotateBy(shooter.getTurretHeading())
-        //         .unaryMinus()
-        //         .rotateBy(cardinal.toRotation2d())
-        //         .rotateBy(shooter.getTurretHeading());
+        Rotation2d heading = drive.getHeading()
+                .rotateBy(shooter.getTurretHeading())
+                .unaryMinus()
+                .rotateBy(cardinal.toRotation2d())
+                .rotateBy(shooter.getTurretHeading());
 
         // TODO: Adjust heading to accommodate for lack of full 360 rotation (i.e. software limits)
         /*if (mGoal.state.turret < Constants.kTurretConstants.kMinUnitsLimit) {

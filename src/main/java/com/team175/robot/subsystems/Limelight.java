@@ -23,7 +23,7 @@ public final class Limelight extends SubsystemBase {
 
     public static final int ROTATION_SETPOINT = 0; // Target at the center of the limelight
     private static final int ROTATION_DEADBAND = 2; // Degrees
-    private static final Gains ROTATION_GAINS = new Gains(0.075, 0, 0.15);
+    private static final Gains ROTATION_GAINS = new Gains(0.075, 0, 0);
 
     private static Limelight instance;
 
@@ -72,35 +72,43 @@ public final class Limelight extends SubsystemBase {
     }
 
     public void setTrackingMode() {
-        // Zoomed tracking mode
-        setPipeline(2);
-    }
-
-    @Log
-    private boolean isTargetDetected() {
-        return table.getEntry("tv").getDouble(0) == 1;
-    }
-
-    @Log
-    private double getHorizontalOffset() {
-        return table.getEntry("tx").getDouble(0);
-    }
-
-    private double getVerticalOffset() {
-        return table.getEntry("ty").getDouble(0);
-    }
-
-    private double getTargetArea() {
-        return table.getEntry("ta").getDouble(0);
-    }
-
-    private double getSkew() {
-        return table.getEntry("ts").getDouble(0);
+        // 1x Tracking
+        setPipeline(0);
+        // 2x Tracking
+        // setPipeline(2);
     }
 
     @Log
     private int getPipeline() {
         return (int) table.getEntry("getpipe").getDouble(0);
+    }
+
+    @Log
+    public boolean isTargetDetected() {
+        return table.getEntry("tv").getDouble(0) == 1;
+    }
+
+    @Log
+    public double getHorizontalOffset() {
+        return table.getEntry("tx").getDouble(0);
+    }
+
+    public double getVerticalOffset() {
+        return table.getEntry("ty").getDouble(0);
+    }
+
+    public double getTargetArea() {
+        return table.getEntry("ta").getDouble(0);
+    }
+
+    public double getSkew() {
+        return table.getEntry("ts").getDouble(0);
+    }
+
+    @Log
+    public double getLatency() {
+        // ~ 15 ms latency
+        return table.getEntry("tl").getDouble(0) + 11; // Add 11 ms for image capture latency
     }
 
     @Log
