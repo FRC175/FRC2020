@@ -24,7 +24,7 @@ public final class Drive extends SubsystemBase {
     // new left master TalonSRX).
     private final TalonSRX leftMaster, leftSlave, rightMaster, rightSlave;
     private final PigeonIMU gyro;
-    private DoubleSolenoid shifter;
+    private final DoubleSolenoid shifter;
     private final DriveHelper driveHelper;
     private final DifferentialDriveOdometry odometer;
 
