@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.ControlType;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
@@ -41,11 +42,11 @@ public final class Shooter extends SubsystemBase {
 
     private Shooter() {
         turret = new TalonSRX(TURRET_PORT);
-        /*flywheelMaster = new TalonSRX(FLYWHEEL_MASTER_PORT);
-        flywheelSlave = new TalonSRX(FLYWHEEL_SLAVE_PORT);*/
+        flywheelMaster = new TalonSRX(FLYWHEEL_MASTER_PORT);
+        flywheelSlave = new TalonSRX(FLYWHEEL_SLAVE_PORT);
         configureTalons();
         // hood = new Servo(HOOD_PORT);
-        // hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         configureSparkMax();
         // ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
@@ -150,6 +151,11 @@ public final class Shooter extends SubsystemBase {
     @Log
     public int getTurretPosition() {
         return turret.getSelectedSensorPosition();
+    }
+
+    @Log
+    public int getTurretVelocity() {
+        return turret.getSelectedSensorVelocity();
     }
 
     @Log(methodName = "getDegrees")

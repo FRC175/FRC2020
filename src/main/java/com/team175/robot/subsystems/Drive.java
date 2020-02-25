@@ -1,6 +1,7 @@
 package com.team175.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
@@ -85,6 +86,8 @@ public final class Drive extends SubsystemBase {
     private void configureTalons() {
         leftMaster.configFactoryDefault();
         leftMaster.setInverted(false);
+        leftMaster.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+        leftMaster.setSelectedSensorPosition(0);
 
         leftSlave.configFactoryDefault();
         leftSlave.follow(leftMaster);
@@ -92,6 +95,8 @@ public final class Drive extends SubsystemBase {
 
         rightMaster.configFactoryDefault();
         rightMaster.setInverted(true);
+        rightMaster.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+        rightMaster.setSelectedSensorPosition(0);
 
         rightSlave.configFactoryDefault();
         rightSlave.follow(rightMaster);
@@ -165,7 +170,7 @@ public final class Drive extends SubsystemBase {
         return leftMaster.getMotorOutputVoltage();
     }
 
-    /*@Log
+    @Log
     public int getLeftPosition() {
         return leftMaster.getSelectedSensorPosition();
     }
@@ -173,7 +178,7 @@ public final class Drive extends SubsystemBase {
     @Log
     public int getLeftVelocity() {
         return leftMaster.getSelectedSensorVelocity();
-    }*/
+    }
 
     @Log
     public double getRightDemand() {
@@ -185,7 +190,7 @@ public final class Drive extends SubsystemBase {
         return rightMaster.getMotorOutputVoltage();
     }
 
-    /*@Log
+    @Log
     public int getRightPosition() {
         return rightMaster.getSelectedSensorPosition();
     }
@@ -193,7 +198,7 @@ public final class Drive extends SubsystemBase {
     @Log
     public int getRightVelocity() {
         return rightMaster.getSelectedSensorVelocity();
-    }*/
+    }
 
     /**
      * Returns the heading (angle) of the robot relative to its starting heading. It is returned as a {@link Rotation2d}
@@ -201,6 +206,8 @@ public final class Drive extends SubsystemBase {
      *
      * @return Current heading
      */
+    // methodName gets the output of a specific method in Rotation2d
+    // This is used when the return type (i.e. Rotation2d) is not natively supported by the Shuffleboard
     @Log(methodName = "getDegrees")
     public Rotation2d getHeading() {
         return Rotation2d.fromDegrees(Math.IEEEremainder(gyro.getFusedHeading(), 360));
@@ -249,7 +256,7 @@ public final class Drive extends SubsystemBase {
     public boolean checkIntegrity() {
         CTREDiagnostics leftMotorTest = new CTREDiagnostics(leftMaster, "DriveLeftMaster");
         CTREDiagnostics rightMotorTest = new CTREDiagnostics(rightMaster, "DriveRightMaster");
-        return leftMotorTest.checkMotorController() && rightMotorTest.checkMotorController();
+        return rightMotorTest.checkMotorController() && leftMotorTest.checkMotorController();
     }
 
 }

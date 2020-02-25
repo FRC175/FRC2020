@@ -8,6 +8,7 @@ import com.team195.lib.util.ThreadRateControl;
 import com.team254.lib.util.CrashTrackingRunnable;
 import com.team254.lib.util.LatchedBoolean;*/
 import com.team175.robot.subsystems.LED;
+import com.team175.robot.subsystems.Limelight;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.Timer;
@@ -26,7 +27,7 @@ public class ConnectionMonitor {
     private double mLastPacketTime;
     private LatchedBoolean mJustReconnected = new LatchedBoolean();
     private LatchedBoolean mJustDisconnected = new LatchedBoolean();
-    private LED mLED = LED.getInstance();
+    // private LED mLED = LED.getInstance();
     private Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
 
     private boolean isFirstRun = true;
@@ -49,6 +50,7 @@ public class ConnectionMonitor {
                 } else {
                     /*mLED.setLEDColor(Constants.kCommLossColor);
                     mLED.setMessage("sos", true);*/
+                    // Limelight.getInstance().turnOnLED();
                 }
 
                 if (mJustReconnected.update(hasConnection))
@@ -86,10 +88,12 @@ public class ConnectionMonitor {
         /*mLED.setLEDColor(Constants.kDefaultColor);
         mLED.configureBlink(LEDController.kDefaultBlinkCount, LEDController.kDefaultBlinkDuration);
         mLED.setRequestedState(LEDController.LEDState.BLINK);*/
+        Limelight.getInstance().turnOffLED();
     }
 
     private void justDisconnected() {
         // Reconfigure blink if we are just disconnected.
+        Limelight.getInstance().turnOnLED();
         // mLED.configureBlink(LEDController.kDefaultBlinkCount, LEDController.kDefaultBlinkDuration * 2.0);
     }
 

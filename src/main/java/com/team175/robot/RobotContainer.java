@@ -11,6 +11,7 @@ import com.team175.robot.subsystems.LED;
 import com.team175.robot.subsystems.Drive;
 import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
+import com.team175.robot.utils.ConnectionMonitor;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.shuffleboard.EventImportance;
@@ -41,6 +42,7 @@ public final class RobotContainer {
     private final AdvancedXboxController driverController, operatorController;
     private final SendableChooser<Command> autoChooser;
     private final Logger logger;
+    private final ConnectionMonitor monitor;
 
     private Command autoMode;
 
@@ -65,6 +67,7 @@ public final class RobotContainer {
         operatorController = new AdvancedXboxController(OPERATOR_CONTROLLER_PORT, CONTROLLER_DEADBAND);
         autoChooser = new SendableChooser<>();
         logger = LoggerFactory.getLogger(getClass().getSimpleName());
+        monitor = ConnectionMonitor.getInstance();
 
         configureDefaultCommands();
         configureButtonBindings();
@@ -257,8 +260,7 @@ public final class RobotContainer {
     }
 
     public boolean checkRobotIntegrity() {
-        drive.checkIntegrity();
-        return true;
+        return drive.checkIntegrity();
     }
 
     /**

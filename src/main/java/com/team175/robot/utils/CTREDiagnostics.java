@@ -56,7 +56,7 @@ public final class CTREDiagnostics {
 
     private boolean checkEncoderPresence() {
         if (motorController instanceof TalonSRX) {
-            if (((TalonSRX) motorController).getSensorCollection().getPulseWidthRiseToFallUs() == 0) {
+            if (((TalonSRX) motorController).getSensorCollection().getPulseWidthRiseToRiseUs() == 0) {
                 logger.warn("{} does not have an encoder attached!", name);
                 return false;
             } else {
@@ -73,7 +73,7 @@ public final class CTREDiagnostics {
         // Move motor for 2 seconds
         motorController.setSelectedSensorPosition(0);
         double preTestPosition = motorController.getSelectedSensorPosition();
-        motorController.set(ControlMode.PercentOutput, (isOutputGood ? 0.25 : -0.25));
+        motorController.set(ControlMode.PercentOutput, 0.75);
         Timer.delay(DELAY_TIME);
 
         // Wait 2 seconds before stopping motor
@@ -107,7 +107,8 @@ public final class CTREDiagnostics {
 
         // isOutputGood = true;
         isEncoderPresent = checkEncoderPresence();
-        isEncoderInPhase = isEncoderPresent ? checkEncoderPhase() : false;
+        // isEncoderInPhase = isEncoderPresent ? checkEncoderPhase() : false;
+        isEncoderInPhase = checkEncoderPhase();
         isNotFaulted = checkFaults(); // Invert to see if motor is faulted
 
         boolean isGood = true;
