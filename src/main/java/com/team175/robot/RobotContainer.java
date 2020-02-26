@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
  */
 public final class RobotContainer {
 
-    // The robot's subsystems and commands are defined here
     private final Drive drive;
     private final Limelight limelight;
     private final Shooter shooter;
@@ -53,7 +52,7 @@ public final class RobotContainer {
     private static final double CONTROLLER_DEADBAND = 0.1;
 
     /**
-     * The container for the robot.  Contains subsystems, OI devices, and commands.
+     * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     private RobotContainer() {
         drive = Drive.getInstance();
@@ -96,11 +95,6 @@ public final class RobotContainer {
         );
     }
 
-    /**
-     * Use this method to define your button->command mappings.  Buttons can be created by instantiating a {@link
-     * GenericHID} or one of its subclasses ({@link edu.wpi.first.wpilibj.Joystick Joystick} or {@link XboxController}),
-     * and then passing it to a {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
-     */
     private void configureButtonBindings() {
         // ----------------------------------------------------------------------------------------------------
         // DRIVE
@@ -231,8 +225,8 @@ public final class RobotContainer {
 
     private void configureAutoChooser() {
         autoChooser.setDefaultOption("Do Nothing", null);
-        // autoChooser.addOption();
         // Add more auto modes here
+        // autoChooser.addOption();
         SmartDashboard.putData("Auto Mode Chooser", autoChooser);
     }
 
@@ -260,6 +254,7 @@ public final class RobotContainer {
     }
 
     public boolean checkRobotIntegrity() {
+        logger.info("Starting robot health test...");
         return drive.checkIntegrity();
     }
 

@@ -6,7 +6,7 @@ import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.team175.robot.Robot;
-import com.team175.robot.utils.CTREDiagnostics;
+import com.team175.robot.utils.TalonSRXDiagnostics;
 import com.team175.robot.utils.DriveHelper;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
@@ -254,9 +254,18 @@ public final class Drive extends SubsystemBase {
      */
     @Override
     public boolean checkIntegrity() {
-        CTREDiagnostics leftMotorTest = new CTREDiagnostics(leftMaster, "DriveLeftMaster");
-        CTREDiagnostics rightMotorTest = new CTREDiagnostics(rightMaster, "DriveRightMaster");
-        return rightMotorTest.checkMotorController() && leftMotorTest.checkMotorController();
+        TalonSRXDiagnostics leftMotorTest = new TalonSRXDiagnostics(leftMaster, "DriveLeftMaster");
+        TalonSRXDiagnostics rightMotorTest = new TalonSRXDiagnostics(rightMaster, "DriveRightMaster");
+
+        logger.info("Beginning integrity check for Drive.");
+
+        boolean isGood = true;
+        isGood &= leftMotorTest.runIntegrityTest();
+        isGood &= rightMotorTest.runIntegrityTest();
+        logger.info("{}", leftMotorTest.toString());
+        logger.info("{}", rightMotorTest.toString());
+
+        return isGood;
     }
 
 }

@@ -99,7 +99,6 @@ public final class Robot extends TimedRobot {
     public void testInit() {
         // Cancel all running commands at the start of test mode
         CommandScheduler.getInstance().cancelAll();
-        System.out.println("Starting robot test");
         robotContainer.checkRobotIntegrity();
     }
 

@@ -15,7 +15,7 @@ public final class SparkMaxDiagnostics {
 
     private boolean isSensorInPhase;
 
-    private static final Logger logger = LoggerFactory.getLogger(CTREDiagnostics.class.getSimpleName());
+    private static final Logger logger = LoggerFactory.getLogger(TalonSRXDiagnostics.class.getSimpleName());
     private static final double DELAY_TIME = 2; // In seconds
 
     public SparkMaxDiagnostics(CANSparkMax motorController, String name) {
@@ -51,7 +51,7 @@ public final class SparkMaxDiagnostics {
         }
     }*/
 
-    public boolean checkMotorController() {
+    public boolean runIntegrityTest() {
         logger.info("Beginning diagnostics test for {}.", name);
 
         // Move motor for 2 seconds

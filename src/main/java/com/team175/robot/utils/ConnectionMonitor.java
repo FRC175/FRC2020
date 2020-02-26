@@ -1,12 +1,5 @@
 package com.team175.robot.utils;
 
-/*import com.team195.frc2019.constants.Constants;
-import com.team195.frc2019.reporters.ConsoleReporter;
-import com.team195.frc2019.reporters.MessageLevel;
-import com.team195.frc2019.controllers.LEDController;
-import com.team195.lib.util.ThreadRateControl;
-import com.team254.lib.util.CrashTrackingRunnable;
-import com.team254.lib.util.LatchedBoolean;*/
 import com.team175.robot.subsystems.LED;
 import com.team175.robot.subsystems.Limelight;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -16,72 +9,87 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Keeps track of the robot's connection to the driver station. If it disconnects for more than 1 second, start blinking
- * the LEDs.
+ * ConnectionMonitor keeps track of the robot's connection to the driver station. If the robot disconnects for more than
+ * 1 second, the LEDs will start blinking.
+ *
+ * @author Team195
  */
 public class ConnectionMonitor {
 
-    private static final double MIN_CONNECTION_MONITOR_THREAD_LOOP_MS = 0.5;
-    private static ConnectionMonitor instance = new ConnectionMonitor();
-    private boolean hasConnection = true;
-    private double mLastPacketTime;
-    private LatchedBoolean mJustReconnected = new LatchedBoolean();
-    private LatchedBoolean mJustDisconnected = new LatchedBoolean();
-    // private LED mLED = LED.getInstance();
-    private Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
-
-    private boolean isFirstRun = true;
-
-    private final Runnable mConnectionRunnable = new Runnable() {
+    private final LED led;
+    private final LatchedBoolean justReconnected;
+    private final LatchedBoolean justDisconnected;
+    private final Logger logger;
+    private final Notifier notifier;
+    private final Runnable connectionRunnable = new Runnable() {
         @Override
         public void run() {
             try {
                 if (isFirstRun) {
                     Thread.currentThread().setName("ConnectionMonitor");
                     // Thread.currentThread().setPriority(Constants.kConnectionMonitorThreadPriority);
-                    mLastPacketTime = Timer.getFPGATimestamp();
+                    lastPacketTime = Timer.getFPGATimestamp();
                     isFirstRun = false;
                 }
 
                 hasConnection = DriverStation.getInstance().waitForData(1);
 
                 if (hasConnection) {
-                    mLastPacketTime = Timer.getFPGATimestamp();
+                    lastPacketTime = Timer.getFPGATimestamp();
                 } else {
                     /*mLED.setLEDColor(Constants.kCommLossColor);
                     mLED.setMessage("sos", true);*/
-                    // Limelight.getInstance().turnOnLED();
+                    Limelight.getInstance().turnOnLED();
                 }
 
-                if (mJustReconnected.update(hasConnection))
+                if (justReconnected.update(hasConnection)) {
                     justReconnected();
+                }
 
-                if (mJustDisconnected.update(!hasConnection))
+                if (justDisconnected.update(!hasConnection)) {
                     justDisconnected();
+                }
             } catch (Throwable t) {
-                logger.error("Connection Monitor has an error!!!", t);
+                logger.error("Connection Monitor has thrown an error!!!", t);
             }
         }
     };
 
-    private final Notifier mConnectionNotifier;
+    private boolean hasConnection;
+    private double lastPacketTime;
+    private boolean isFirstRun;
+
+    private static final double NOTIFIER_PERIOD = 0.5; // s
+
+    private static ConnectionMonitor instance;
 
     private ConnectionMonitor() {
-        mConnectionNotifier = new Notifier(mConnectionRunnable);
-        mConnectionNotifier.startPeriodic(MIN_CONNECTION_MONITOR_THREAD_LOOP_MS);
+        led = LED.getInstance();
+        justReconnected = new LatchedBoolean();
+        justDisconnected = new LatchedBoolean();
+        logger = LoggerFactory.getLogger(getClass().getSimpleName());
+        hasConnection = true;
+        isFirstRun = true;
+
+        notifier = new Notifier(connectionRunnable);
+        notifier.startPeriodic(NOTIFIER_PERIOD);
     }
 
     public static ConnectionMonitor getInstance() {
+        if (instance == null) {
+            instance = new ConnectionMonitor();
+        }
+
         return instance;
     }
 
-    public boolean isConnected() {
+    /*public boolean isConnected() {
         return hasConnection;
     }
 
     public double getLastPacketTime() {
-        return mLastPacketTime;
-    }
+        return lastPacketTime;
+    }*/
 
     private void justReconnected() {
         // Reconfigure blink if we are just connected.
