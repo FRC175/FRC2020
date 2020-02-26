@@ -8,6 +8,7 @@ import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.ControlType;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
+import com.team175.robot.utils.SensorUnits;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Solenoid;
@@ -96,7 +97,7 @@ public final class Shooter extends SubsystemBase {
     }
 
     public void setTurretHeading(Rotation2d heading) {
-        setTurretPosition(degreesToCounts(heading));
+        setTurretPosition(SensorUnits.degreesToCounts(heading, COUNTS_PER_REVOLUTION));
     }
 
     @Config
@@ -112,6 +113,14 @@ public final class Shooter extends SubsystemBase {
         flywheelMaster.set(ControlMode.PercentOutput, demand);
     }
 
+    public void setFlywheelVelocity(int velocity) {
+        flywheelMaster.set(ControlMode.Velocity, velocity);
+    }
+
+    public void setFlywheelRPM(double rpm) {
+        flywheelMaster.set(ControlMode.Velocity, SensorUnits.rpmToTalonVelocity(rpm, COUNTS_PER_REVOLUTION));
+    }
+
     public void setHoodOpenLoop(double demand) {
         hood.set(demand);
     }
@@ -123,25 +132,6 @@ public final class Shooter extends SubsystemBase {
     public void setBallGate(boolean allowBalls) {
         logger.info("{} ball gate", allowBalls ? "Retracting" : "Deploying");
         ballGate.set(allowBalls);
-    }
-
-    private int degreesToCounts(Rotation2d heading) {
-        return (int) (heading.getDegrees() * (COUNTS_PER_REVOLUTION / 360.0));
-    }
-
-    private Rotation2d countsToDegrees(double position) {
-        return Rotation2d.fromDegrees(position * (360.0 / COUNTS_PER_REVOLUTION));
-    }
-
-    /**
-     * @return Velocity in sensor units per 100 ms
-     */
-    private int rpmToTalonVelocity(int rpm) {
-        return rpm;
-    }
-
-    private int talonVelocityToRPM(int velocity) {
-        return velocity;
     }
 
     private int getTurretSetpoint() {
@@ -160,12 +150,20 @@ public final class Shooter extends SubsystemBase {
 
     @Log(methodName = "getDegrees")
     public Rotation2d getTurretHeading() {
-        return countsToDegrees(getTurretPosition());
+        return SensorUnits.countsToDegrees(getTurretPosition(), COUNTS_PER_REVOLUTION);
     }
 
     /*@Log
     private double getFlywheelDemand() {
         return flywheelMaster.getMotorOutputPercent();
+    }
+
+    public int getFlywheelVelocity() {
+        return flywheelMaster.getSelectedSensorVelocity();
+    }
+
+    public double getFlywheelRPM() {
+        return SensorUnits.talonVelocityToRPM(getFlywheelVelocity(), COUNTS_PER_REVOLUTION);
     }
 
     @Log
