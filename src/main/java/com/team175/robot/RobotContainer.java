@@ -11,6 +11,7 @@ import com.team175.robot.subsystems.LED;
 import com.team175.robot.subsystems.Drive;
 import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
+import com.team175.robot.utils.ConnectionMonitor;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.shuffleboard.EventImportance;
@@ -30,17 +31,17 @@ import org.slf4j.LoggerFactory;
  */
 public final class RobotContainer {
 
-    // The robot's subsystems and commands are defined here
     private final Drive drive;
     private final Limelight limelight;
     private final Shooter shooter;
-    /*private final ColorWheelSpinner colorWheelSpinner;
+    private final ColorWheelSpinner colorWheelSpinner;
     private final Intake intake;
     private final Climber climber;
-    private final LED led;*/
+    private final LED led;
     private final AdvancedXboxController driverController, operatorController;
     private final SendableChooser<Command> autoChooser;
     private final Logger logger;
+    private final ConnectionMonitor monitor;
 
     private Command autoMode;
 
@@ -51,20 +52,21 @@ public final class RobotContainer {
     private static final double CONTROLLER_DEADBAND = 0.1;
 
     /**
-     * The container for the robot.  Contains subsystems, OI devices, and commands.
+     * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     private RobotContainer() {
         drive = Drive.getInstance();
         limelight = Limelight.getInstance();
         shooter = Shooter.getInstance();
-        /*colorWheelSpinner = ColorWheelSpinner.getInstance();
+        colorWheelSpinner = ColorWheelSpinner.getInstance();
         intake = Intake.getInstance();
         climber = Climber.getInstance();
-        led = LED.getInstance();*/
+        led = LED.getInstance();
         driverController = new AdvancedXboxController(DRIVER_CONTROLLER_PORT, CONTROLLER_DEADBAND);
         operatorController = new AdvancedXboxController(OPERATOR_CONTROLLER_PORT, CONTROLLER_DEADBAND);
         autoChooser = new SendableChooser<>();
         logger = LoggerFactory.getLogger(getClass().getSimpleName());
+        monitor = ConnectionMonitor.getInstance();
 
         configureDefaultCommands();
         configureButtonBindings();
@@ -93,25 +95,20 @@ public final class RobotContainer {
         );
     }
 
-    /**
-     * Use this method to define your button->command mappings.  Buttons can be created by instantiating a {@link
-     * GenericHID} or one of its subclasses ({@link edu.wpi.first.wpilibj.Joystick Joystick} or {@link XboxController}),
-     * and then passing it to a {@link edu.wpi.first.wpilibj2.command.button.JoystickButton JoystickButton}.
-     */
     private void configureButtonBindings() {
         // ----------------------------------------------------------------------------------------------------
         // DRIVE
         // ----------------------------------------------------------------------------------------------------
         // Shift gears
-        /*new XboxButton(driverController, AdvancedXboxController.Button.X)
+        new XboxButton(driverController, AdvancedXboxController.Button.X)
                 .whileHeld(() -> drive.shift(true), drive)
-                .whenReleased(() -> drive.shift(false), drive);*/
+                .whenReleased(() -> drive.shift(false), drive);
 
         // ----------------------------------------------------------------------------------------------------
         // INTAKE
         // ----------------------------------------------------------------------------------------------------
         // Intake control
-        /*new XboxButton(driverController, AdvancedXboxController.Button.A)
+        new XboxButton(driverController, AdvancedXboxController.Button.A)
                 .whileHeld(() -> intake.setRollerOpenLoop(0.1), intake)
                 .whenPressed(() -> intake.setIndexerOpenLoop(1), intake)
                 .whenReleased(() -> intake.setRollerOpenLoop(0), intake);
@@ -137,7 +134,7 @@ public final class RobotContainer {
                             intake.setRollerOpenLoop(0);
                         },
                         intake
-                );*/
+                );
 
         // ----------------------------------------------------------------------------------------------------
         // SHOOTER
@@ -170,7 +167,7 @@ public final class RobotContainer {
         // COLOR WHEEL SPINNER
         // ----------------------------------------------------------------------------------------------------
         // Deploy/retract color wheel spinner
-        /*new XboxButton(operatorController, AdvancedXboxController.Button.A)
+        new XboxButton(operatorController, AdvancedXboxController.Button.A)
                 .whenPressed(new ConditionalCommand(
                         new InstantCommand(colorWheelSpinner::deploy, colorWheelSpinner),
                         new InstantCommand(colorWheelSpinner::retract, colorWheelSpinner),
@@ -187,13 +184,13 @@ public final class RobotContainer {
                 ));
         // Spin to color
         new XboxButton(operatorController, AdvancedXboxController.Button.B)
-                .toggleWhenPressed(new SpinColorWheelToColor(colorWheelSpinner));*/
+                .toggleWhenPressed(new SpinColorWheelToColor(colorWheelSpinner));
 
         // ----------------------------------------------------------------------------------------------------
         // CLIMBER
         // ----------------------------------------------------------------------------------------------------
         // Deploy/retract climber
-        /*new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
+        new XboxButton(driverController, AdvancedXboxController.DPad.RIGHT)
                 .whenPressed(new ConditionalCommand(
                         new InstantCommand(climber::deploy, climber),
                         new InstantCommand(climber::retract, climber),
@@ -206,7 +203,7 @@ public final class RobotContainer {
         // Winch down
         new XboxButton(driverController, AdvancedXboxController.DPad.DOWN)
                 .whileHeld(() -> climber.setWinchOpenLoop(-0.75), climber)
-                .whenReleased(() -> climber.setWinchOpenLoop(0), climber);*/
+                .whenReleased(() -> climber.setWinchOpenLoop(0), climber);
 
         // ----------------------------------------------------------------------------------------------------
         // OLD
@@ -228,8 +225,8 @@ public final class RobotContainer {
 
     private void configureAutoChooser() {
         autoChooser.setDefaultOption("Do Nothing", null);
-        // autoChooser.addOption();
         // Add more auto modes here
+        // autoChooser.addOption();
         SmartDashboard.putData("Auto Mode Chooser", autoChooser);
     }
 
@@ -254,6 +251,11 @@ public final class RobotContainer {
                     logger.debug("{} finished.", command.getName());
                 }
         );
+    }
+
+    public boolean checkRobotIntegrity() {
+        logger.info("Starting robot health test...");
+        return drive.checkIntegrity();
     }
 
     /**

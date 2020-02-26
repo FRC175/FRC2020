@@ -81,6 +81,7 @@ public final class ColorWheelSpinner extends SubsystemBase {
     }
 
     public void deploy(boolean deploy) {
+        logger.info("{} color wheel spinner", deploy ? "Deploying" : "Retracting");
         deployer.set(deploy ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
     }
 
@@ -92,7 +93,7 @@ public final class ColorWheelSpinner extends SubsystemBase {
         deploy(false);
     }
 
-    @Log
+    // @Log
     public boolean isDeployed() {
         return deployer.get() == DoubleSolenoid.Value.kForward;
     }

@@ -33,7 +33,7 @@ public final class DriveHelper {
     private static final double QUICK_STOP_SCALAR = 5.0;
 
     /**
-     * Constructs a new FatDriveHelper.
+     * Constructs a new DriveHelper.
      *
      * @param left  The master Talon SRX for the left drive motors
      * @param right The master Talon SRX for the right drive motors

@@ -20,6 +20,7 @@ public final class BlinkLED extends CommandBase {
     public BlinkLED(LED led, Color color) {
         this.led = led;
         blinkColor = color;
+        addRequirements(led);
     }
 
     @Override

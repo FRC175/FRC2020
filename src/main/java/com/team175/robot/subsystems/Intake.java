@@ -79,6 +79,7 @@ public final class Intake extends SubsystemBase {
     }
 
     public void deploy(boolean deploy) {
+        logger.info("{} intake arm", deploy ? "Deploying" : "Retracting");
         deployer.set(deploy ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
     }
 
@@ -90,7 +91,7 @@ public final class Intake extends SubsystemBase {
         deploy(false);
     }
 
-    @Log
+    // @Log
     public boolean isDeployed() {
         return deployer.get() == DoubleSolenoid.Value.kForward;
     }

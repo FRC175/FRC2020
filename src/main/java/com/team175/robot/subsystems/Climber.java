@@ -21,8 +21,8 @@ public final class Climber extends SubsystemBase {
     private Climber() {
         winchMaster = new CANSparkMax(WINCH_MASTER_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         winchSlave = new CANSparkMax(WINCH_SLAVE_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
-        deployer = new Solenoid(PCM_PORT, DEPLOYER_CHANNEL);
         configureSparkMaxes();
+        deployer = new Solenoid(PCM_PORT, DEPLOYER_CHANNEL);
     }
 
     public static Climber getInstance() {
@@ -44,6 +44,7 @@ public final class Climber extends SubsystemBase {
     }
 
     public void deploy(boolean deploy) {
+        logger.info("{} climber", deploy ? "Deploying" : "Retracting");
         deployer.set(deploy);
     }
 
@@ -55,7 +56,7 @@ public final class Climber extends SubsystemBase {
         deploy(false);
     }
 
-    @Log
+    // @Log
     public boolean isDeployed() {
         return deployer.get();
     }

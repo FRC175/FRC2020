@@ -12,6 +12,7 @@ public final class SpinColorWheelToColor extends CommandBase {
 
     public SpinColorWheelToColor(ColorWheelSpinner colorWheelSpinner) {
         this.colorWheelSpinner = colorWheelSpinner;
+        addRequirements(colorWheelSpinner);
     }
 
     private String getColorSetpoint(char fieldWantedColor) {

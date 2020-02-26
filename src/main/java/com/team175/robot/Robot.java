@@ -7,6 +7,7 @@
 
 package com.team175.robot;
 
+import com.team175.robot.subsystems.Drive;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -65,7 +66,7 @@ public final class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
-        autoCommand = robotContainer.getAutoMode();
+        // autoCommand = robotContainer.getAutoMode();
 
         if (autoCommand != null) {
             autoCommand.schedule();
@@ -98,6 +99,7 @@ public final class Robot extends TimedRobot {
     public void testInit() {
         // Cancel all running commands at the start of test mode
         CommandScheduler.getInstance().cancelAll();
+        robotContainer.checkRobotIntegrity();
     }
 
     /**
