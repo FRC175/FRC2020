@@ -88,6 +88,7 @@ public final class Drive extends SubsystemBase {
         leftMaster.setInverted(false);
         leftMaster.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
         leftMaster.setSelectedSensorPosition(0);
+        leftMaster.setSensorPhase(true);
 
         leftSlave.configFactoryDefault();
         leftSlave.follow(leftMaster);
