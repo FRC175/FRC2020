@@ -96,8 +96,8 @@ public final class RobotContainer {
                                     throttle,
                                     driverController.getX(GenericHID.Hand.kLeft)
                             );
-                            driverController.setRumble(GenericHID.RumbleType.kLeftRumble, Math.abs(throttle));
-                            driverController.setRumble(GenericHID.RumbleType.kRightRumble, Math.abs(throttle));
+                            /*driverController.setRumble(GenericHID.RumbleType.kLeftRumble, Math.abs(throttle));
+                            driverController.setRumble(GenericHID.RumbleType.kRightRumble, Math.abs(throttle));*/
                         },
                         drive
                 ).andThen(() -> drive.arcadeDrive(0, 0), drive)
