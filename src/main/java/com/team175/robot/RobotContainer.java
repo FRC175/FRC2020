@@ -1,6 +1,9 @@
 package com.team175.robot;
 
-import com.team175.robot.commands.*;
+import com.team175.robot.commands.auto.EightBallAutoClose;
+import com.team175.robot.commands.colorwheelspinner.SpinColorWheelToColor;
+import com.team175.robot.commands.shooter.LockOntoTarget;
+import com.team175.robot.commands.shooter.RotateTurretToFieldOrientedCardinal;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
 import com.team175.robot.subsystems.Intake;
@@ -13,12 +16,11 @@ import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 import com.team175.robot.utils.ConnectionMonitor;
 import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.shuffleboard.EventImportance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +46,7 @@ public final class RobotContainer {
     private final ConnectionMonitor monitor;
 
     private Command autoMode;
+    private boolean isRobotPaused;
 
     private static RobotContainer instance;
 
@@ -67,6 +70,7 @@ public final class RobotContainer {
         autoChooser = new SendableChooser<>();
         logger = LoggerFactory.getLogger(getClass().getSimpleName());
         monitor = ConnectionMonitor.getInstance();
+        isRobotPaused = false;
 
         configureDefaultCommands();
         configureButtonBindings();
@@ -86,10 +90,15 @@ public final class RobotContainer {
         // Arcade Drive
         drive.setDefaultCommand(
                 new RunCommand(
-                        () -> drive.arcadeDrive(
-                                driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft),
-                                driverController.getX(GenericHID.Hand.kLeft)
-                        ),
+                        () -> {
+                            double throttle = driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft);
+                            drive.arcadeDrive(
+                                    throttle,
+                                    driverController.getX(GenericHID.Hand.kLeft)
+                            );
+                            driverController.setRumble(GenericHID.RumbleType.kLeftRumble, Math.abs(throttle));
+                            driverController.setRumble(GenericHID.RumbleType.kRightRumble, Math.abs(throttle));
+                        },
                         drive
                 ).andThen(() -> drive.arcadeDrive(0, 0), drive)
         );
@@ -149,10 +158,35 @@ public final class RobotContainer {
         // Align to target
         new XboxButton(operatorController, AdvancedXboxController.Trigger.LEFT)
                 .toggleWhenPressed(new LockOntoTarget(shooter, limelight));
+                /*.whenReleased(new SequentialCommandGroup(
+                        new InstantCommand(() -> {
+                            operatorController.setRumble(GenericHID.RumbleType.kLeftRumble, 1);
+                            operatorController.setRumble(GenericHID.RumbleType.kRightRumble, 1);
+                        }),
+                        new WaitCommand(1),
+                        new InstantCommand(() -> {
+                            operatorController.setRumble(GenericHID.RumbleType.kLeftRumble, 0);
+                            operatorController.setRumble(GenericHID.RumbleType.kRightRumble, 0);
+                        })
+                ));*/
         // Auto shoot
         new XboxButton(operatorController, AdvancedXboxController.Trigger.RIGHT)
-                .whenPressed(new LogCommand("Pew pew"));
-                // .toggleWhenPressed();
+                // .whenPressed(new LogCommand("Pew pew"));
+                .toggleWhenPressed(new FunctionalCommand(
+                        () -> {
+                            shooter.setBallGate(true);
+                            shooter.setFlywheelOpenLoop(0.5);
+                            shooter.setHoodHeading(Rotation2d.fromDegrees(90));
+                        },
+                        () -> {},
+                        (interrupted) -> {
+                            shooter.setBallGate(false);
+                            shooter.setFlywheelOpenLoop(0);
+                            shooter.setHoodHeading(Rotation2d.fromDegrees(0));
+                        },
+                        () -> false,
+                        shooter
+                ));
         // Turret Cardinals
         new XboxButton(operatorController, AdvancedXboxController.DPad.UP)
                 .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.NORTH));
@@ -226,7 +260,7 @@ public final class RobotContainer {
     private void configureAutoChooser() {
         autoChooser.setDefaultOption("Do Nothing", null);
         // Add more auto modes here
-        // autoChooser.addOption();
+        autoChooser.addOption("Eight Ball Auto", new EightBallAutoClose(shooter, limelight, intake));
         SmartDashboard.putData("Auto Mode Chooser", autoChooser);
     }
 
@@ -255,7 +289,7 @@ public final class RobotContainer {
 
     public boolean checkRobotIntegrity() {
         logger.info("Starting robot health test...");
-        return drive.checkIntegrity();
+        return colorWheelSpinner.checkIntegrity();
     }
 
     /**
@@ -265,6 +299,14 @@ public final class RobotContainer {
      */
     public Command getAutoMode() {
         return autoMode = autoChooser.getSelected();
+    }
+
+    public boolean isRobotPaused() {
+        if (driverController.getStartButton()) {
+            isRobotPaused = !isRobotPaused;
+        }
+
+        return isRobotPaused;
     }
 
 }

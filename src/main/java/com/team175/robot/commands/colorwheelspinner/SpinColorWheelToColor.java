@@ -1,4 +1,4 @@
-package com.team175.robot.commands;
+package com.team175.robot.commands.colorwheelspinner;
 
 import com.team175.robot.subsystems.ColorWheelSpinner;
 import edu.wpi.first.wpilibj.DriverStation;

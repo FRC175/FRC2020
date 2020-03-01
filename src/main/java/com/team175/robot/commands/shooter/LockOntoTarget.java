@@ -1,17 +1,19 @@
-package com.team175.robot.commands;
+package com.team175.robot.commands.shooter;
 
 import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
-public final class RotateTurretToTarget extends CommandBase {
+/**
+ * LockOntoTarget is essentially the same as {@link RotateTurretToTarget} except the command cannot end on its own (i.e.
+ * it never "ends").
+ */
+public final class LockOntoTarget extends CommandBase {
 
     private final Shooter shooter;
     private final Limelight limelight;
-
-    // Shooter and Limelight objects are is the constructor despite the single instance.
-    // This is because WPILib recommends the dependency injection design pattern.
-    public RotateTurretToTarget(Shooter shooter, Limelight limelight) {
+    
+    public LockOntoTarget(Shooter shooter, Limelight limelight) {
         this.shooter = shooter;
         this.limelight = limelight;
         addRequirements(shooter, limelight);
@@ -37,8 +39,7 @@ public final class RotateTurretToTarget extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return limelight.isAtTarget();
+        return false;
     }
 
 }
-

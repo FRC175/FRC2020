@@ -22,7 +22,8 @@ import io.github.oblarg.oblog.annotations.Log;
 public final class Shooter extends SubsystemBase {
 
     private TalonSRX turret, flywheelMaster, flywheelSlave;
-    private CANSparkMax hood;
+    private final Servo hood;
+    // private CANSparkMax hood;
     private Solenoid ballGate;
     private final MotionMagicGains turretGains;
 
@@ -34,7 +35,7 @@ public final class Shooter extends SubsystemBase {
     private static final int TURRET_PORT = 11;
     private static final int FLYWHEEL_MASTER_PORT = 13;
     private static final int FLYWHEEL_SLAVE_PORT = 12;
-    private static final int HOOD_PORT = 4;
+    private static final int HOOD_PORT = 0;
     private static final int BALL_GATE_CHANNEL = 6;
     private static final int TURRET_DEADBAND = 5;
     private static final int COUNTS_PER_REVOLUTION = 4096; // TODO: Fix
@@ -46,10 +47,10 @@ public final class Shooter extends SubsystemBase {
         flywheelMaster = new TalonSRX(FLYWHEEL_MASTER_PORT);
         flywheelSlave = new TalonSRX(FLYWHEEL_SLAVE_PORT);
         configureTalons();
-        // hood = new Servo(HOOD_PORT);
-        hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        hood = new Servo(HOOD_PORT);
+        // hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         configureSparkMax();
-        // ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
+        ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
     }
 
@@ -125,8 +126,17 @@ public final class Shooter extends SubsystemBase {
         hood.set(demand);
     }
 
+    /**
+     * Sets the hood position.
+     *
+     * @param position A number between 0 and 1 that represents the position of the servo.
+     */
     public void setHoodPosition(double position) {
-        hood.getPIDController().setReference(position, ControlType.kPosition);
+        hood.set(position);
+    }
+
+    public void setHoodHeading(Rotation2d heading) {
+        hood.setAngle(heading.getDegrees());
     }
 
     public void setBallGate(boolean allowBalls) {

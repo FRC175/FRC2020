@@ -1,4 +1,4 @@
-package com.team175.robot.commands;
+package com.team175.robot.commands.shooter;
 
 import com.team175.robot.positions.TurretCardinal;
 import com.team175.robot.subsystems.Drive;

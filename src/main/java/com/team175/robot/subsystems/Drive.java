@@ -53,7 +53,8 @@ public final class Drive extends SubsystemBase {
         rightMaster = new TalonSRX(RIGHT_MASTER_PORT);
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
         configureTalons();
-        gyro = new PigeonIMU(rightSlave);
+        // gyro = new PigeonIMU(rightSlave);
+        gyro = new PigeonIMU(leftSlave);
         configurePigeon();
         shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
         driveHelper = new DriveHelper(leftMaster, rightMaster);

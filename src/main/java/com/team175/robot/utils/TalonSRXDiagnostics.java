@@ -89,7 +89,7 @@ public final class TalonSRXDiagnostics {
         isNotFaulted = checkFaults();
 
         boolean isGood = true;
-        isGood &= isEncoderPresent;
+        // isGood &= isEncoderPresent;
         isGood &= isEncoderInPhase;
         isGood &= isNotFaulted;
 
