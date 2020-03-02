@@ -24,7 +24,7 @@ public final class Shooter extends SubsystemBase {
     private TalonSRX turret, flywheelMaster, flywheelSlave;
     private final Servo hood;
     // private final CANSparkMax hood;
-    private Solenoid ballGate;
+    private final Solenoid ballGate;
     private final MotionMagicGains turretGains;
 
     private int turretSetpoint;

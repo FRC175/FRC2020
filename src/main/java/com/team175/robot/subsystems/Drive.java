@@ -6,12 +6,22 @@ import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.team175.robot.Robot;
+import com.team175.robot.utils.SensorUnits;
 import com.team175.robot.utils.TalonSRXDiagnostics;
 import com.team175.robot.utils.DriveHelper;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.controller.RamseteController;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
+import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
+import edu.wpi.first.wpilibj.util.Units;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
@@ -27,8 +37,12 @@ public final class Drive extends SubsystemBase {
     private final PigeonIMU gyro;
     private final DoubleSolenoid shifter;
     private final DriveHelper driveHelper;
+    private final SimpleMotorFeedforward feedforward;
+    private final DifferentialDriveKinematics kinematics;
+    private final DifferentialDriveVoltageConstraint voltageConstraint;
     private final DifferentialDriveOdometry odometer;
 
+    // Ports
     private static final int PCM_PORT = 18;
     private static final int LEFT_MASTER_PORT = 2;
     private static final int LEFT_SLAVE_PORT = 1;
@@ -36,6 +50,22 @@ public final class Drive extends SubsystemBase {
     private static final int RIGHT_SLAVE_PORT = 14;
     private static final int SHIFTER_FORWARD_CHANNEL = 0;
     private static final int SHIFTER_REVERSE_CHANNEL = 1;
+    // Closed Loop Constants
+    private static final int COUNTS_PER_REVOLUTION = 4096;
+    private static final double WHEEL_RADIUS = Units.inchesToMeters(1); // TODO: Fix
+    private static final double TRACK_WIDTH = Units.feetToMeters(6.71); // TODO: Fix
+    private static final double MAX_VELOCITY = Units.feetToMeters(12);
+    private static final double MAX_ACCELERATION = Units.feetToMeters(12);
+    private static final double MAX_VOLTAGE = 10;
+    private static final double KS = 1.22;
+    private static final double KV = 2.57;
+    private static final double KA = 0.22;
+    private static final double VELOCITY_KP = 3.34;
+    private static final double VELOCITY_KD = 0;
+    private static final double POSITION_KP = 0.77;
+    private static final double POSITION_KD = 340;
+    private static final double RAMSETE_B = 2;
+    private static final double RAMSETE_ZETA = 0.7;
 
     /**
      * The single instance of {@link Drive} used to implement the "singleton" design pattern. A description of the
@@ -58,6 +88,9 @@ public final class Drive extends SubsystemBase {
         configurePigeon();
         shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
         driveHelper = new DriveHelper(leftMaster, rightMaster);
+        feedforward = new SimpleMotorFeedforward(KS, KV, KA);
+        kinematics = new DifferentialDriveKinematics(TRACK_WIDTH);
+        voltageConstraint = new DifferentialDriveVoltageConstraint(feedforward, kinematics, MAX_VOLTAGE);
         odometer = new DifferentialDriveOdometry(getHeading());
     }
 
@@ -147,6 +180,11 @@ public final class Drive extends SubsystemBase {
         driveHelper.cheesyDrive(throttle, turn, isQuickTurn, true);
     }
 
+    public void setVelocity(int velocity) {
+        leftMaster.set(ControlMode.Velocity, velocity);
+        rightMaster.set(ControlMode.Velocity, velocity);
+    }
+
     /**
      * Shifts the robot between the two gears - high gear and low gear.
      *
@@ -154,6 +192,12 @@ public final class Drive extends SubsystemBase {
      */
     public void shift(boolean shift) {
         shifter.set(shift ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+    }
+
+    public void resetOdometry() {
+        leftMaster.setSelectedSensorPosition(0);
+        rightMaster.setSelectedSensorPosition(0);
+        odometer.resetPosition(new Pose2d(), getHeading());
     }
 
     /**
@@ -177,6 +221,15 @@ public final class Drive extends SubsystemBase {
         return leftMaster.getSelectedSensorPosition();
     }
 
+    public double getLeftRotations() {
+        return SensorUnits.countsToRotations(getLeftPosition(), COUNTS_PER_REVOLUTION);
+    }
+
+    public double getLeftMeters() {
+        // wheelRotations * circumference
+        return getLeftRotations() * 2 * Math.PI * WHEEL_RADIUS;
+    }
+
     @Log
     public int getLeftVelocity() {
         return leftMaster.getSelectedSensorVelocity();
@@ -197,9 +250,22 @@ public final class Drive extends SubsystemBase {
         return rightMaster.getSelectedSensorPosition();
     }
 
+    public double getRightRotations() {
+        return SensorUnits.countsToRotations(getRightPosition(), COUNTS_PER_REVOLUTION);
+    }
+
+    public double getRightMeters() {
+        // wheelRotations * circumference
+        return getRightRotations() * 2 * Math.PI * WHEEL_RADIUS;
+    }
+
     @Log
     public int getRightVelocity() {
         return rightMaster.getSelectedSensorVelocity();
+    }
+
+    public DifferentialDriveWheelSpeeds getWheelSpeeds() {
+        return new DifferentialDriveWheelSpeeds(getLeftMeters(), getRightMeters());
     }
 
     /**
@@ -232,14 +298,30 @@ public final class Drive extends SubsystemBase {
         return odometer.getPoseMeters();
     }
 
+    public TrajectoryConfig getTrajectoryConfig() {
+        return new TrajectoryConfig(MAX_VELOCITY, MAX_ACCELERATION)
+                .setKinematics(kinematics)
+                .addConstraint(voltageConstraint);
+    }
+
+    public RamseteCommand getRamseteFromTrajectory(Trajectory trajectory) {
+        return new RamseteCommand(
+                trajectory,
+                this::getPose,
+                new RamseteController(RAMSETE_B, RAMSETE_ZETA),
+                kinematics,
+                (left, right) -> {}, // TODO: Implement ramsete in SRX
+                this
+        );
+    }
+
     /**
      * Performs actions to run periodically (à la {@link Robot::teleopPeriodic()}). Feeds encoder and gyro readings to
      * the odometer to update the pose of the robot relative to the field.
      */
     @Override
     public void periodic() {
-        // TODO: Fix and add encoders
-        odometer.update(getHeading(), 0, 0);
+        odometer.update(getHeading(), getLeftMeters(), getRightMeters());
     }
 
     /**
@@ -248,7 +330,7 @@ public final class Drive extends SubsystemBase {
     @Override
     public void resetSensors() {
         gyro.setFusedHeading(0);
-        odometer.resetPosition(new Pose2d(), getHeading());
+        resetOdometry();
     }
 
     /**

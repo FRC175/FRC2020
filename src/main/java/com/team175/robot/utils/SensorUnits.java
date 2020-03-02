@@ -16,6 +16,10 @@ public final class SensorUnits {
         return Rotation2d.fromDegrees(position * (360.0 / countsPerRevolution));
     }
 
+    public static double countsToRotations(double position, final int countsPerRevolution) {
+        return position / countsPerRevolution;
+    }
+
     public static int rpmToTalonVelocity(double rpm, final int countsPerRevolution) {
         return (int) (rpm * (double) countsPerRevolution * (1.0 / 600.0));
     }
