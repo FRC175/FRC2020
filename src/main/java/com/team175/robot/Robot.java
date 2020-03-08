@@ -57,6 +57,7 @@ public final class Robot extends TimedRobot {
      */
     @Override
     public void disabledInit() {
+        Drive.getInstance().resetSensors();
     }
 
     @Override

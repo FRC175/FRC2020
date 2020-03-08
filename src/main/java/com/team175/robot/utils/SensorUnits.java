@@ -20,11 +20,15 @@ public final class SensorUnits {
         return position / countsPerRevolution;
     }
 
-    public static int rpmToTalonVelocity(double rpm, final int countsPerRevolution) {
+    public static int rotationsToCounts(double rotations, final int countsPerRevolution) {
+        return (int) (rotations * countsPerRevolution);
+    }
+
+    public static int rpmToCountsPerDecisecond(double rpm, final int countsPerRevolution) {
         return (int) (rpm * (double) countsPerRevolution * (1.0 / 600.0));
     }
 
-    public static double talonVelocityToRPM(double velocity, final int countsPerRevolution) {
+    public static double countsPer100MsToRPM(double velocity, final int countsPerRevolution) {
         return velocity * (1.0 / countsPerRevolution) * 600.0;
     }
 

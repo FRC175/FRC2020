@@ -1,15 +1,19 @@
 package com.team175.robot.subsystems;
 
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.team175.robot.Robot;
+import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.utils.SensorUnits;
 import com.team175.robot.utils.TalonSRXDiagnostics;
 import com.team175.robot.utils.DriveHelper;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.controller.RamseteController;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
@@ -41,6 +45,8 @@ public final class Drive extends SubsystemBase {
     private final DifferentialDriveKinematics kinematics;
     private final DifferentialDriveVoltageConstraint voltageConstraint;
     private final DifferentialDriveOdometry odometer;
+    private final MotionMagicGains leftGains;
+    private final MotionMagicGains rightGains;
 
     // Ports
     private static final int PCM_PORT = 18;
@@ -52,20 +58,19 @@ public final class Drive extends SubsystemBase {
     private static final int SHIFTER_REVERSE_CHANNEL = 1;
     // Closed Loop Constants
     private static final int COUNTS_PER_REVOLUTION = 4096;
-    private static final double WHEEL_RADIUS = Units.inchesToMeters(1); // TODO: Fix
-    private static final double TRACK_WIDTH = Units.feetToMeters(6.71); // TODO: Fix
-    private static final double MAX_VELOCITY = Units.feetToMeters(12);
-    private static final double MAX_ACCELERATION = Units.feetToMeters(12);
-    private static final double MAX_VOLTAGE = 10;
-    private static final double KS = 1.22;
-    private static final double KV = 2.57;
-    private static final double KA = 0.22;
-    private static final double VELOCITY_KP = 3.34;
-    private static final double VELOCITY_KD = 0;
-    private static final double POSITION_KP = 0.77;
-    private static final double POSITION_KD = 340;
-    private static final double RAMSETE_B = 2;
-    private static final double RAMSETE_ZETA = 0.7;
+    public static final double WHEEL_RADIUS = Units.inchesToMeters(2); // TODO: Fix
+    public static final double TRACK_WIDTH = Units.feetToMeters(1.76); // TODO: Fix
+    public static final double MAX_VELOCITY = Units.feetToMeters(6);
+    public static final double MAX_ACCELERATION = Units.feetToMeters(3);
+    public static final double MAX_VOLTAGE = 10;
+    public static final double KS = 1.41;
+    public static final double KV = 2.55;
+    public static final double KA = 0.207;
+    public static final double VELOCITY_KP = 3.21;
+    public static final double VELOCITY_KD = 0;
+    public static final double POSITION_KP = 0.743;
+    public static final double POSITION_KD = 0.326;
+    private static final double POSITION_CONSTANT = 1.5;
 
     /**
      * The single instance of {@link Drive} used to implement the "singleton" design pattern. A description of the
@@ -92,6 +97,8 @@ public final class Drive extends SubsystemBase {
         kinematics = new DifferentialDriveKinematics(TRACK_WIDTH);
         voltageConstraint = new DifferentialDriveVoltageConstraint(feedforward, kinematics, MAX_VOLTAGE);
         odometer = new DifferentialDriveOdometry(getHeading());
+        leftGains = new MotionMagicGains(VELOCITY_KP, 0, VELOCITY_KD, 0, 0, 0, leftMaster);
+        rightGains = new MotionMagicGains(VELOCITY_KP, 0, VELOCITY_KD, 0, 0, 0, rightMaster);
     }
 
     /**
@@ -157,6 +164,20 @@ public final class Drive extends SubsystemBase {
         rightMaster.set(ControlMode.PercentOutput, rightDemand);
     }
 
+    public void setVoltage(double leftVoltage, double rightVoltage) {
+        // Log code from WPI_TalonSRX
+        if (leftMaster.isVoltageCompensationEnabled()) {
+            com.ctre.phoenix.Logger.log(ErrorCode.DoubleVoltageCompensatingWPI, "LeftMaster " + ": setVoltage ");
+        }
+        if (rightMaster.isVoltageCompensationEnabled()) {
+            com.ctre.phoenix.Logger.log(ErrorCode.DoubleVoltageCompensatingWPI, "LeftMaster " + ": setVoltage ");
+        }
+        setOpenLoop(
+                leftVoltage / RobotController.getBatteryVoltage(),
+                rightVoltage / RobotController.getBatteryVoltage()
+        );
+    }
+
     /**
      * Controls the drive motor using arcade controls - with a throttle and a turn.
      *
@@ -180,9 +201,37 @@ public final class Drive extends SubsystemBase {
         driveHelper.cheesyDrive(throttle, turn, isQuickTurn, true);
     }
 
-    public void setVelocity(int velocity) {
-        leftMaster.set(ControlMode.Velocity, velocity);
-        rightMaster.set(ControlMode.Velocity, velocity);
+    public void setPosition(int position) {
+        leftMaster.set(ControlMode.Position, position);
+        rightMaster.set(ControlMode.Position, position);
+    }
+
+    public void setRotations(double rotations) {
+        setPosition(SensorUnits.rotationsToCounts(rotations, COUNTS_PER_REVOLUTION));
+    }
+
+    public void setVelocity(int leftVelocity, int rightVelocity) {
+        leftMaster.set(ControlMode.Velocity, leftVelocity);
+        rightMaster.set(ControlMode.Velocity, rightVelocity);
+    }
+
+    public void setMetersPerSecond(double leftVelocity, double rightVelocity) {
+        double leftFeedforward = feedforward.calculate(leftVelocity) / 12;
+        double rightFeedforward = feedforward.calculate(rightVelocity) / 12;
+        leftVelocity = SensorUnits.rpmToCountsPerDecisecond(metersPerSecondToRPM(leftVelocity), COUNTS_PER_REVOLUTION);
+        rightVelocity = SensorUnits.rpmToCountsPerDecisecond(metersPerSecondToRPM(rightVelocity), COUNTS_PER_REVOLUTION);
+        leftMaster.set(
+                ControlMode.Velocity,
+                leftVelocity,
+                DemandType.ArbitraryFeedForward,
+                leftFeedforward
+        );
+        rightMaster.set(
+                ControlMode.Velocity,
+                rightVelocity,
+                DemandType.ArbitraryFeedForward,
+                rightFeedforward
+        );
     }
 
     /**
@@ -198,6 +247,20 @@ public final class Drive extends SubsystemBase {
         leftMaster.setSelectedSensorPosition(0);
         rightMaster.setSelectedSensorPosition(0);
         odometer.resetPosition(new Pose2d(), getHeading());
+    }
+
+    private double rotationsToMeters(double rotations) {
+        // wheelRotations * circumference * positionConstant
+        return rotations * 2 * Math.PI * WHEEL_RADIUS * POSITION_CONSTANT;
+    }
+
+    private double rpmToMetersPerSecond(double rpm) {
+        // rpm -> rps -> m/s
+        return (rpm / 60) * 2 * Math.PI * WHEEL_RADIUS;
+    }
+
+    private double metersPerSecondToRPM(double velocity) {
+        return (velocity * 60) / (2 * Math.PI * WHEEL_RADIUS);
     }
 
     /**
@@ -221,18 +284,29 @@ public final class Drive extends SubsystemBase {
         return leftMaster.getSelectedSensorPosition();
     }
 
+    @Log
     public double getLeftRotations() {
         return SensorUnits.countsToRotations(getLeftPosition(), COUNTS_PER_REVOLUTION);
     }
 
+    @Log
     public double getLeftMeters() {
-        // wheelRotations * circumference
-        return getLeftRotations() * 2 * Math.PI * WHEEL_RADIUS;
+        return rotationsToMeters(getLeftRotations());
     }
 
     @Log
     public int getLeftVelocity() {
         return leftMaster.getSelectedSensorVelocity();
+    }
+
+    @Log
+    public double getLeftRPM() {
+        return SensorUnits.countsPer100MsToRPM(getLeftVelocity(), COUNTS_PER_REVOLUTION);
+    }
+
+    @Log
+    public double getLeftMetersPerSecond() {
+        return rpmToMetersPerSecond(getLeftRPM());
     }
 
     @Log
@@ -250,13 +324,14 @@ public final class Drive extends SubsystemBase {
         return rightMaster.getSelectedSensorPosition();
     }
 
+    @Log
     public double getRightRotations() {
         return SensorUnits.countsToRotations(getRightPosition(), COUNTS_PER_REVOLUTION);
     }
 
+    @Log
     public double getRightMeters() {
-        // wheelRotations * circumference
-        return getRightRotations() * 2 * Math.PI * WHEEL_RADIUS;
+        return rotationsToMeters(getRightRotations());
     }
 
     @Log
@@ -264,8 +339,18 @@ public final class Drive extends SubsystemBase {
         return rightMaster.getSelectedSensorVelocity();
     }
 
+    @Log
+    public double getRightRPM() {
+        return SensorUnits.countsPer100MsToRPM(getRightVelocity(), COUNTS_PER_REVOLUTION);
+    }
+
+    @Log
+    public double getRightMetersPerSecond() {
+        return rpmToMetersPerSecond(getRightRPM());
+    }
+
     public DifferentialDriveWheelSpeeds getWheelSpeeds() {
-        return new DifferentialDriveWheelSpeeds(getLeftMeters(), getRightMeters());
+        return new DifferentialDriveWheelSpeeds(getLeftMetersPerSecond(), getRightMetersPerSecond());
     }
 
     /**
@@ -298,6 +383,14 @@ public final class Drive extends SubsystemBase {
         return odometer.getPoseMeters();
     }
 
+    public DifferentialDriveKinematics getKinematics() {
+        return kinematics;
+    }
+
+    public SimpleMotorFeedforward getFeedforward() {
+        return feedforward;
+    }
+
     public TrajectoryConfig getTrajectoryConfig() {
         return new TrajectoryConfig(MAX_VELOCITY, MAX_ACCELERATION)
                 .setKinematics(kinematics)
@@ -308,7 +401,7 @@ public final class Drive extends SubsystemBase {
         return new RamseteCommand(
                 trajectory,
                 this::getPose,
-                new RamseteController(RAMSETE_B, RAMSETE_ZETA),
+                new RamseteController(2, 0.7),
                 kinematics,
                 (left, right) -> {}, // TODO: Implement ramsete in SRX
                 this
@@ -329,6 +422,7 @@ public final class Drive extends SubsystemBase {
      */
     @Override
     public void resetSensors() {
+        gyro.setYaw(0);
         gyro.setFusedHeading(0);
         resetOdometry();
     }

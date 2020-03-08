@@ -1,7 +1,9 @@
 package com.team175.robot;
 
-import com.team175.robot.commands.auto.EightBallAutoClose;
+import com.team175.robot.auto.TrajectoryFactory;
+import com.team175.robot.auto.modes.EightBallAllianceTrenchNear;
 import com.team175.robot.commands.colorwheelspinner.SpinColorWheelToColor;
+import com.team175.robot.commands.drive.DriveTrajectoryRedux;
 import com.team175.robot.commands.shooter.LockOntoTarget;
 import com.team175.robot.commands.shooter.RotateTurretToFieldOrientedCardinal;
 import com.team175.robot.models.AdvancedXboxController;
@@ -45,7 +47,6 @@ public final class RobotContainer {
     private final Logger logger;
     private final ConnectionMonitor monitor;
 
-    private Command autoMode;
     private boolean isRobotPaused;
 
     private static RobotContainer instance;
@@ -91,11 +92,13 @@ public final class RobotContainer {
         drive.setDefaultCommand(
                 new RunCommand(
                         () -> {
-                            double throttle = driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft);
-                            drive.arcadeDrive(
-                                    throttle,
-                                    driverController.getX(GenericHID.Hand.kLeft)
-                            );
+                            // if (driverController.getBumper(GenericHID.Hand.kRight)) {
+                                double throttle = driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft);
+                                drive.arcadeDrive(
+                                        throttle,
+                                        driverController.getX(GenericHID.Hand.kLeft)
+                                );
+                            // }
                             /*driverController.setRumble(GenericHID.RumbleType.kLeftRumble, Math.abs(throttle));
                             driverController.setRumble(GenericHID.RumbleType.kRightRumble, Math.abs(throttle));*/
                         },
@@ -260,7 +263,8 @@ public final class RobotContainer {
     private void configureAutoChooser() {
         autoChooser.setDefaultOption("Do Nothing", null);
         // Add more auto modes here
-        autoChooser.addOption("Eight Ball Auto", new EightBallAutoClose(shooter, limelight, intake));
+        autoChooser.addOption("EightBallAllianceTrenchNear", new EightBallAllianceTrenchNear(drive, shooter, limelight, intake));
+        autoChooser.addOption("Ramsete", new DriveTrajectoryRedux(TrajectoryFactory.getAllianceTrenchRunNear(), drive));
         SmartDashboard.putData("Auto Mode Chooser", autoChooser);
     }
 
@@ -298,7 +302,7 @@ public final class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutoMode() {
-        return autoMode = autoChooser.getSelected();
+        return autoChooser.getSelected();
     }
 
     public boolean isRobotPaused() {

@@ -156,7 +156,7 @@ public final class ColorWheelSpinner extends SubsystemBase {
         return color;
     }
 
-    @Log
+    // @Log
     public int getPosition() {
         return spinner.getSelectedSensorPosition();
     }

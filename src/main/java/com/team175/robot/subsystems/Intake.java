@@ -4,8 +4,10 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
+import com.team175.robot.utils.DelayedBoolean;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Timer;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
@@ -17,9 +19,10 @@ public final class Intake extends SubsystemBase {
     private final CANSparkMax roller;
     private final VictorSPX indexerHorizontal, indexerVertical;
     private final DoubleSolenoid deployer;
-    private final DigitalInput intakeInSensor, intakeOutSensor;
+    private final DigitalInput bottomSensor, topSensor;
+    private final DelayedBoolean bottomBall, topBall;
 
-    private boolean isBallPickedUp;
+    private boolean isBallPickedUp, got5Balls;
 
     private static final int PCM_PORT = 18;
     private static final int ROLLER_PORT = 6;
@@ -40,8 +43,10 @@ public final class Intake extends SubsystemBase {
         indexerVertical = new VictorSPX(INDEXER_VERTICAL_PORT);
         configureVictors();
         deployer = new DoubleSolenoid(PCM_PORT, DEPLOYER_FORWARD_CHANNEL, DEPLOYER_REVERSE_CHANNEL);
-        intakeInSensor = new DigitalInput(INTAKE_IN_PORT);
-        intakeOutSensor = new DigitalInput(INTAKE_OUT_PORT);
+        bottomSensor = new DigitalInput(INTAKE_IN_PORT);
+        topSensor = new DigitalInput(INTAKE_OUT_PORT);
+        bottomBall = new DelayedBoolean(Timer.getFPGATimestamp(), 1);
+        topBall = new DelayedBoolean(Timer.getFPGATimestamp(), 1);
     }
 
     /*public boolean getIO() {
@@ -113,6 +118,12 @@ public final class Intake extends SubsystemBase {
             isBallPickedUp = true;
         } else {
             isBallPickedUp = false;
+        }*/
+
+        /*if (topBall.update(Timer.getFPGATimestamp(), topSensor.get()) && bottomBall.update(Timer.getFPGATimestamp(), bottomSensor.get())) {
+            got5Balls = true;
+        } else {
+            got5Balls = false;
         }*/
     }
 

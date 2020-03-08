@@ -3,12 +3,10 @@ package com.team175.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import com.revrobotics.ControlType;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
 import com.team175.robot.utils.SensorUnits;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Solenoid;
@@ -21,15 +19,17 @@ import io.github.oblarg.oblog.annotations.Log;
  */
 public final class Shooter extends SubsystemBase {
 
-    private TalonSRX turret, flywheelMaster, flywheelSlave;
+    private final TalonSRX turret, flywheelMaster, flywheelSlave;
     private final Servo hood;
     // private final CANSparkMax hood;
     private final Solenoid ballGate;
     private final MotionMagicGains turretGains;
+    private final DigitalInput turretHomingSensor;
 
     private int turretSetpoint;
     private int flywheelSetpoint;
     private int hoodSetpoint;
+    private boolean got5Balls;
 
     private static final int PCM_PORT = 18;
     private static final int TURRET_PORT = 11;
@@ -52,6 +52,7 @@ public final class Shooter extends SubsystemBase {
         configureSparkMax();
         ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
+        turretHomingSensor = new DigitalInput(2);
     }
 
     public static Shooter getInstance() {
@@ -67,6 +68,7 @@ public final class Shooter extends SubsystemBase {
         turret.configFactoryDefault();
         turret.setInverted(false);
         turret.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+        turret.configSelectedFeedbackSensor(FeedbackDevice.Analog, 1, 10);
         // turret.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute);
         turret.setSensorPhase(true);
         // TODO: Comment out in real robot
@@ -119,7 +121,7 @@ public final class Shooter extends SubsystemBase {
     }
 
     public void setFlywheelRPM(double rpm) {
-        flywheelMaster.set(ControlMode.Velocity, SensorUnits.rpmToTalonVelocity(rpm, COUNTS_PER_REVOLUTION));
+        flywheelMaster.set(ControlMode.Velocity, SensorUnits.rpmToCountsPerDecisecond(rpm, COUNTS_PER_REVOLUTION));
     }
 
     public void setHoodOpenLoop(double demand) {
@@ -163,6 +165,11 @@ public final class Shooter extends SubsystemBase {
         return SensorUnits.countsToDegrees(getTurretPosition(), COUNTS_PER_REVOLUTION);
     }
 
+    @Log
+    public int getAnalogSensor() {
+        return turret.getSelectedSensorPosition(1);
+    }
+
     /*@Log
     private double getFlywheelDemand() {
         return flywheelMaster.getMotorOutputPercent();
@@ -180,6 +187,13 @@ public final class Shooter extends SubsystemBase {
     public boolean getBallGate() {
         return ballGate.get();
     }*/
+
+    @Override
+    public void periodic() {
+        /*if (turretHomingSensor.get()) {
+            turret.setSelectedSensorPosition(0);
+        }*/
+    }
 
     @Override
     public void resetSensors() {
