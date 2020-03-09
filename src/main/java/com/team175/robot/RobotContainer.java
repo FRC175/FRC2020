@@ -1,9 +1,9 @@
 package com.team175.robot;
 
-import com.team175.robot.auto.TrajectoryFactory;
-import com.team175.robot.auto.modes.EightBallAllianceTrenchNear;
+import com.team175.robot.commands.auto.modes.EightBallAllianceTrenchFar;
+import com.team175.robot.commands.auto.modes.EightBallAllianceTrenchMiddle;
+import com.team175.robot.commands.auto.modes.EightBallAllianceTrenchNear;
 import com.team175.robot.commands.colorwheelspinner.SpinColorWheelToColor;
-import com.team175.robot.commands.drive.DriveTrajectoryRedux;
 import com.team175.robot.commands.shooter.LockOntoTarget;
 import com.team175.robot.commands.shooter.RotateTurretToFieldOrientedCardinal;
 import com.team175.robot.models.AdvancedXboxController;
@@ -263,8 +263,9 @@ public final class RobotContainer {
     private void configureAutoChooser() {
         autoChooser.setDefaultOption("Do Nothing", null);
         // Add more auto modes here
-        autoChooser.addOption("EightBallAllianceTrenchNear", new EightBallAllianceTrenchNear(drive, shooter, limelight, intake));
-        autoChooser.addOption("Ramsete", new DriveTrajectoryRedux(TrajectoryFactory.getAllianceTrenchRunNear(), drive));
+        autoChooser.addOption("Eight Ball Alliance Trench Near", new EightBallAllianceTrenchNear(drive, shooter, limelight, intake));
+        autoChooser.addOption("Eight Ball Alliance Trench Middle", new EightBallAllianceTrenchMiddle(drive));
+        autoChooser.addOption("Eight Ball Alliance Trench Far", new EightBallAllianceTrenchFar(drive));
         SmartDashboard.putData("Auto Mode Chooser", autoChooser);
     }
 
@@ -291,9 +292,19 @@ public final class RobotContainer {
         );
     }
 
+    public void configureAutoInit() {
+        drive.setBrakeMode();
+        // drive.shift(true);
+    }
+
+    public void configureTeleopInit() {
+        drive.setCoastMode();
+        // drive.shift(false);
+    }
+
     public boolean checkRobotIntegrity() {
         logger.info("Starting robot health test...");
-        return colorWheelSpinner.checkIntegrity();
+        return drive.checkIntegrity();
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.team175.robot.auto;
+package com.team175.robot.commands.auto;
 
 import com.team175.robot.subsystems.Drive;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
@@ -30,10 +30,11 @@ public final class TrajectoryFactory {
         return TrajectoryGenerator.generateTrajectory(
                 List.of(
                         new Pose2d(0, 0, new Rotation2d(0)),
-                        new Pose2d(3, 1.6, new Rotation2d(0)),
-                        new Pose2d(6.5, 1.6, new Rotation2d(0))
+                        new Pose2d(-3, -1.6, new Rotation2d(0)),
+                        new Pose2d(-6.5, -1.6, new Rotation2d(0))
                 ),
-                config
+                // config
+                reverseConfig
         );
     }
 
@@ -64,10 +65,11 @@ public final class TrajectoryFactory {
     public static Trajectory getAllianceTrenchReturnNear() {
         return TrajectoryGenerator.generateTrajectory(
                 List.of(
-                        new Pose2d(6.5, 1.6, new Rotation2d(0)),
-                        new Pose2d(3, 1.6, new Rotation2d(0))
+                        new Pose2d(-6.5, -1.6, new Rotation2d(0)),
+                        new Pose2d(-3, -1.6, new Rotation2d(0))
                 ),
-                reverseConfig
+                // reverseConfig
+                config
         );
     }
 

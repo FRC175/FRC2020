@@ -28,8 +28,6 @@ public final class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-        // Instantiate the RobotContainer. This will perform all our button bindings, and put our autonomous chooser on
-        // the dashboard.
         robotContainer = RobotContainer.getInstance();
     }
 
@@ -69,8 +67,11 @@ public final class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
-        autoCommand = robotContainer.getAutoMode();
+        // Configure subsystems for autonomous
+        robotContainer.configureAutoInit();
 
+        // Initialize autonomous mode from shuffleboard input
+        autoCommand = robotContainer.getAutoMode();
         if (autoCommand != null) {
             autoCommand.schedule();
         }
@@ -85,6 +86,9 @@ public final class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
+        // Configure subsystems for teleop
+        robotContainer.configureTeleopInit();
+
         // Make sure that the autonomous stops running when teleop starts running
         if (autoCommand != null) {
             autoCommand.cancel();

@@ -3,6 +3,9 @@ package com.team175.robot.utils;
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.team175.robot.positions.LEDColor;
+import com.team175.robot.positions.LEDPattern;
+import com.team175.robot.subsystems.LED;
 import edu.wpi.first.wpilibj.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +23,7 @@ public final class TalonSRXDiagnostics {
     private static final Logger logger = LoggerFactory.getLogger(TalonSRXDiagnostics.class.getSimpleName());
     private static final int TIMEOUT = 10; // ms
     private static final int ENCODER_FAULT_THRESHOLD = 2; // counts
-    private static final double TEST_DURATION = 3; // Seconds
+    private static final double TEST_DURATION = 2; // Seconds
 
     public TalonSRXDiagnostics(TalonSRX motorController, String name) {
         this.motorController = motorController;
@@ -31,7 +34,7 @@ public final class TalonSRXDiagnostics {
         if (code != ErrorCode.OK) {
             logger.warn("{}\n" +
                     "\tErrorCode: {}", msg, code.toString());
-            // LED.getInstance().blinkColor(LEDColor.ERROR);
+            LED.getInstance().blinkColor(LEDColor.ERROR);
         }
     }
 
@@ -88,13 +91,17 @@ public final class TalonSRXDiagnostics {
         isEncoderInPhase = checkEncoderPhase();
         isNotFaulted = checkFaults();
 
-        boolean isGood = true;
+        boolean isGood = false;
         // isGood &= isEncoderPresent;
         isGood &= isEncoderInPhase;
         isGood &= isNotFaulted;
 
         if (!isGood) {
             logger.error("{} failed diagnostics test!", name);
+            LED.getInstance().blinkColor(LEDColor.ERROR);
+        } else {
+            logger.error("{} passed diagnostics test!", name);
+            LED.getInstance().blinkColor(LEDColor.SUCCESS);
         }
 
         return isGood;

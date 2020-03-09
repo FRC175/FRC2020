@@ -1,4 +1,4 @@
-package com.team175.robot.auto.modes;
+package com.team175.robot.commands.auto.modes;
 
 import com.team175.robot.commands.shooter.AutoShoot;
 import com.team175.robot.subsystems.Intake;
