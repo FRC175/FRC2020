@@ -18,12 +18,14 @@ import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 import com.team175.robot.utils.ConnectionMonitor;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.SlewRateLimiter;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.shuffleboard.EventImportance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
+import io.github.oblarg.oblog.annotations.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +45,11 @@ public final class RobotContainer {
     private final Climber climber;
     private final LED led;
     private final AdvancedXboxController driverController, operatorController;
+    @Config(name = "Auto Mode Chooser")
     private final SendableChooser<Command> autoChooser;
     private final Logger logger;
     private final ConnectionMonitor monitor;
+    private final SlewRateLimiter throttleLimiter, turnLimiter;
 
     private boolean isRobotPaused;
 
@@ -54,6 +58,11 @@ public final class RobotContainer {
     private static final int DRIVER_CONTROLLER_PORT = 0;
     private static final int OPERATOR_CONTROLLER_PORT = 1;
     private static final double CONTROLLER_DEADBAND = 0.1;
+
+    // Max rate of change for speed per second
+    private static final double THROTTLE_RATE_LIMITER = 2.5;
+    // Max rate of change for rotation per second
+    private static final double TURN_RATE_LIMITER = 3.0;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -71,6 +80,9 @@ public final class RobotContainer {
         autoChooser = new SendableChooser<>();
         logger = LoggerFactory.getLogger(getClass().getSimpleName());
         monitor = ConnectionMonitor.getInstance();
+        throttleLimiter = new SlewRateLimiter(THROTTLE_RATE_LIMITER);
+        turnLimiter = new SlewRateLimiter(TURN_RATE_LIMITER);
+
         isRobotPaused = false;
 
         configureDefaultCommands();
@@ -266,7 +278,6 @@ public final class RobotContainer {
         autoChooser.addOption("Eight Ball Alliance Trench Near", new EightBallAllianceTrenchNear(drive, shooter, limelight, intake));
         autoChooser.addOption("Eight Ball Alliance Trench Middle", new EightBallAllianceTrenchMiddle(drive));
         autoChooser.addOption("Eight Ball Alliance Trench Far", new EightBallAllianceTrenchFar(drive));
-        SmartDashboard.putData("Auto Mode Chooser", autoChooser);
     }
 
     private void configureLogging() {

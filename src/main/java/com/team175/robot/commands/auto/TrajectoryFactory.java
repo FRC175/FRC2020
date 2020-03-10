@@ -13,17 +13,12 @@ import java.util.List;
 
 public final class TrajectoryFactory {
 
-    private static final DifferentialDriveVoltageConstraint voltageConstraint = new DifferentialDriveVoltageConstraint(
-            new SimpleMotorFeedforward(Drive.KS, Drive.KV, Drive.KA),
-            Drive.getInstance().getKinematics(),
-            Drive.MAX_VOLTAGE
-    );
     private static final TrajectoryConfig config = new TrajectoryConfig(Drive.MAX_VELOCITY, Drive.MAX_ACCELERATION)
-            .setKinematics(Drive.getInstance().getKinematics())
-            .addConstraint(voltageConstraint);
+            .setKinematics(Drive.KINEMATICS)
+            .addConstraint(Drive.VOLTAGE_CONSTRAINT);
     private static final TrajectoryConfig reverseConfig = new TrajectoryConfig(Drive.MAX_VELOCITY, Drive.MAX_ACCELERATION)
-            .setKinematics(Drive.getInstance().getKinematics())
-            .addConstraint(voltageConstraint)
+            .setKinematics(Drive.KINEMATICS)
+            .addConstraint(Drive.VOLTAGE_CONSTRAINT)
             .setReversed(true);
 
     public static Trajectory getAllianceTrenchRunNear() {

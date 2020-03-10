@@ -14,11 +14,13 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.wpilibj.util.Units;
+import io.github.oblarg.oblog.annotations.Config;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
@@ -34,9 +36,6 @@ public final class Drive extends SubsystemBase {
     private final PigeonIMU gyro;
     private final DoubleSolenoid shifter;
     private final DriveHelper driveHelper;
-    private final SimpleMotorFeedforward feedforward;
-    private final DifferentialDriveKinematics kinematics;
-    private final DifferentialDriveVoltageConstraint voltageConstraint;
     private final DifferentialDriveOdometry odometer;
     private final MotionMagicGains leftGains;
     private final MotionMagicGains rightGains;
@@ -55,6 +54,7 @@ public final class Drive extends SubsystemBase {
     public static final double TRACK_WIDTH = Units.feetToMeters(1.76); // TODO: Fix
     public static final double MAX_VELOCITY = Units.feetToMeters(6);
     public static final double MAX_ACCELERATION = Units.feetToMeters(3);
+    public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(360);
     public static final double MAX_VOLTAGE = 10;
     public static final double KS = 1.41;
     public static final double KV = 2.55;
@@ -63,7 +63,19 @@ public final class Drive extends SubsystemBase {
     private static final double VELOCITY_KD = 0;
     private static final double POSITION_KP = 0.743;
     private static final double POSITION_KD = 0.326;
+
+    public static final SimpleMotorFeedforward FEEDFORWARD = new SimpleMotorFeedforward(KS, KV, KA);
+    public static final DifferentialDriveKinematics KINEMATICS = new DifferentialDriveKinematics(TRACK_WIDTH);
+    public static final DifferentialDriveVoltageConstraint VOLTAGE_CONSTRAINT = new DifferentialDriveVoltageConstraint(
+            FEEDFORWARD, KINEMATICS, MAX_VOLTAGE
+    );
+
     private static final double POSITION_CONSTANT = 1.5;
+
+    // Max rate of change for speed per second
+    public static final double THROTTLE_RATE_LIMITER = 2.5;
+    // Max rate of change for rotation per second
+    public static final double ROTATE_RATE_LIMITER = 3.0;
 
     /**
      * The single instance of {@link Drive} used to implement the "singleton" design pattern. A description of the
@@ -86,9 +98,6 @@ public final class Drive extends SubsystemBase {
         configurePigeon();
         shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
         driveHelper = new DriveHelper(leftMaster, rightMaster);
-        feedforward = new SimpleMotorFeedforward(KS, KV, KA);
-        kinematics = new DifferentialDriveKinematics(TRACK_WIDTH);
-        voltageConstraint = new DifferentialDriveVoltageConstraint(feedforward, kinematics, MAX_VOLTAGE);
         odometer = new DifferentialDriveOdometry(getHeading());
         leftGains = new MotionMagicGains(VELOCITY_KP, 0, VELOCITY_KD, 0, 0, 0, leftMaster);
         rightGains = new MotionMagicGains(VELOCITY_KP, 0, VELOCITY_KD, 0, 0, 0, rightMaster);
@@ -179,6 +188,27 @@ public final class Drive extends SubsystemBase {
      */
     public void arcadeDrive(double throttle, double turn) {
         driveHelper.arcadeDrive(throttle, turn);
+
+        /*if (isInHighGear()) {
+            throttle *= MAX_VELOCITY;
+        } else {
+            throttle *= MAX_VELOCITY;
+        }
+        turn *= MAX_ANGULAR_VELOCITY;
+        DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(new ChassisSpeeds(throttle, 0.0, turn));
+        setVoltage(feedforward.calculate(wheelSpeeds.leftMetersPerSecond), feedforward.calculate(wheelSpeeds.rightMetersPerSecond));*/
+    }
+
+    public void velocityArcadeDrive(double throttle, double turn) {
+        // TODO: Change velocity for low gear and high gear
+        if (isInHighGear()) {
+            throttle *= MAX_VELOCITY;
+        } else {
+            throttle *= MAX_VELOCITY;
+        }
+        turn *= MAX_ANGULAR_VELOCITY;
+        DifferentialDriveWheelSpeeds wheelSpeeds = KINEMATICS.toWheelSpeeds(new ChassisSpeeds(throttle, 0.0, turn));
+        setMetersPerSecond(wheelSpeeds.leftMetersPerSecond, wheelSpeeds.rightMetersPerSecond);
     }
 
     /**
@@ -209,8 +239,8 @@ public final class Drive extends SubsystemBase {
     }
 
     public void setMetersPerSecond(double leftVelocity, double rightVelocity) {
-        double leftFeedforward = feedforward.calculate(leftVelocity) / 12;
-        double rightFeedforward = feedforward.calculate(rightVelocity) / 12;
+        double leftFeedforward = FEEDFORWARD.calculate(leftVelocity) / 12;
+        double rightFeedforward = FEEDFORWARD.calculate(rightVelocity) / 12;
         leftVelocity = SensorUnits.rpmToCountsPerDecisecond(metersPerSecondToRPM(leftVelocity), COUNTS_PER_REVOLUTION);
         rightVelocity = SensorUnits.rpmToCountsPerDecisecond(metersPerSecondToRPM(rightVelocity), COUNTS_PER_REVOLUTION);
 
@@ -226,6 +256,16 @@ public final class Drive extends SubsystemBase {
                 DemandType.ArbitraryFeedForward,
                 rightFeedforward
         );
+    }
+
+    @Config
+    public void setLeftVelocityKp(double kP) {
+        leftMaster.config_kP(0, kP);
+    }
+
+    @Config
+    public void setRightVelocityKp(double kP) {
+        rightMaster.config_kP(0, kP);
     }
 
     public void setCoastMode() {
@@ -389,14 +429,6 @@ public final class Drive extends SubsystemBase {
     @Log.ToString
     public Pose2d getPose() {
         return odometer.getPoseMeters();
-    }
-
-    public DifferentialDriveKinematics getKinematics() {
-        return kinematics;
-    }
-
-    public SimpleMotorFeedforward getFeedforward() {
-        return feedforward;
     }
 
     /**
