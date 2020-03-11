@@ -133,7 +133,7 @@ public final class RobotContainer {
         // ----------------------------------------------------------------------------------------------------
         // Intake control
         new XboxButton(driverController, AdvancedXboxController.Button.A)
-                .whileHeld(() -> intake.setRollerOpenLoop(0.1), intake)
+                .whileHeld(() -> intake.setRollerOpenLoop(1), intake)
                 .whenPressed(() -> intake.setIndexerOpenLoop(1), intake)
                 .whenReleased(() -> intake.setRollerOpenLoop(0), intake);
         // Toggle indexer
@@ -274,15 +274,13 @@ public final class RobotContainer {
 
     private void configureAutoChooser() {
         autoChooser.setDefaultOption("Do Nothing", null);
-        // Add more auto modes here
+        /*// Add more auto modes here
         autoChooser.addOption("Eight Ball Alliance Trench Near", new EightBallAllianceTrenchNear(drive, shooter, limelight, intake));
         autoChooser.addOption("Eight Ball Alliance Trench Middle", new EightBallAllianceTrenchMiddle(drive));
-        autoChooser.addOption("Eight Ball Alliance Trench Far", new EightBallAllianceTrenchFar(drive));
+        autoChooser.addOption("Eight Ball Alliance Trench Far", new EightBallAllianceTrenchFar(drive));*/
     }
 
     private void configureLogging() {
-        io.github.oblarg.oblog.Logger.configureLoggingAndConfig(this, false);
-
         CommandScheduler.getInstance().onCommandInitialize(
                 command -> {
                     Shuffleboard.addEventMarker("Command initialized.", command.getName(), EventImportance.kNormal);

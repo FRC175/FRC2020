@@ -11,7 +11,7 @@ import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj2.command.*;
 
-public final class EightBallAllianceTrenchNear extends ParallelRaceGroup {
+public final class EightBallAllianceTrenchNear extends SequentialCommandGroup {
 
     public EightBallAllianceTrenchNear(Drive drive, Shooter shooter, Limelight limelight, Intake intake) {
         addCommands(

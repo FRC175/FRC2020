@@ -93,7 +93,7 @@ public final class Drive extends SubsystemBase {
         rightMaster = new TalonSRX(RIGHT_MASTER_PORT);
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
         configureTalons();
-        gyro = new PigeonIMU(rightSlave);
+        gyro = new PigeonIMU(new TalonSRX(11));
         // gyro = new PigeonIMU(leftSlave);
         configurePigeon();
         shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
@@ -128,7 +128,7 @@ public final class Drive extends SubsystemBase {
      */
     private void configureTalons() {
         leftMaster.configFactoryDefault();
-        leftMaster.setInverted(false);
+        leftMaster.setInverted(true);
         leftMaster.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
         leftMaster.setSelectedSensorPosition(0);
         leftMaster.setSensorPhase(true);
@@ -138,7 +138,7 @@ public final class Drive extends SubsystemBase {
         leftSlave.setInverted(InvertType.FollowMaster);
 
         rightMaster.configFactoryDefault();
-        rightMaster.setInverted(true);
+        rightMaster.setInverted(false);
         rightMaster.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
         rightMaster.setSelectedSensorPosition(0);
 

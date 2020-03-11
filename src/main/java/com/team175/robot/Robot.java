@@ -23,12 +23,17 @@ public final class Robot extends TimedRobot {
     private RobotContainer robotContainer;
     private Command autoCommand;
 
+    private static final boolean IS_LOGGING_ENABLED = false;
+
     /**
      * This method is run when the robot is first started up and should be used for any initialization code.
      */
     @Override
     public void robotInit() {
         robotContainer = RobotContainer.getInstance();
+        if (IS_LOGGING_ENABLED) {
+            Logger.configureLoggingAndConfig(robotContainer, false);
+        }
     }
 
     /**
@@ -44,10 +49,10 @@ public final class Robot extends TimedRobot {
         // commands, running already-scheduled commands, removing finished or interrupted commands,
         // and running subsystem periodic() methods.  This must be called from the robot's periodic
         // block in order for anything in the Command-based framework to work.
-        // if (!robotContainer.isRobotPaused()) {
         CommandScheduler.getInstance().run();
-        Logger.updateEntries();
-        // }
+        if (IS_LOGGING_ENABLED) {
+            Logger.updateEntries();
+        }
     }
 
     /**
