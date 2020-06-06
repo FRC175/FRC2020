@@ -104,13 +104,18 @@ public final class RobotContainer {
         drive.setDefaultCommand(
                 new RunCommand(
                         () -> {
-                            // if (driverController.getBumper(GenericHID.Hand.kRight)) {
-                                double throttle = driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft);
-                                drive.arcadeDrive(
-                                        throttle,
-                                        driverController.getX(GenericHID.Hand.kLeft)
-                                );
-                            // }
+                            double throttle = driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft);
+                            drive.arcadeDrive(
+                                    throttle,
+                                    driverController.getX(GenericHID.Hand.kLeft)
+                            );
+
+                            // Tank Drive
+                            /*drive.setOpenLoop(
+                                    driverController.getY(GenericHID.Hand.kLeft),
+                                    driverController.getY(GenericHID.Hand.kRight)
+                            );*/
+
                             /*driverController.setRumble(GenericHID.RumbleType.kLeftRumble, Math.abs(throttle));
                             driverController.setRumble(GenericHID.RumbleType.kRightRumble, Math.abs(throttle));*/
                         },
@@ -307,7 +312,7 @@ public final class RobotContainer {
     }
 
     public void configureTeleopInit() {
-        drive.setCoastMode();
+        drive.setBrakeMode();
         // drive.shift(false);
     }
 
