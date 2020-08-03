@@ -23,6 +23,8 @@ public final class Robot extends TimedRobot {
     private RobotContainer robotContainer;
     private Command autoCommand;
 
+    // FIXME: Logging can create latency between robot and driver station, so enable once only important variables are logged.
+    // NOTE: This is for logging to the shuffleboard, not the console or log file.
     private static final boolean IS_LOGGING_ENABLED = false;
 
     /**

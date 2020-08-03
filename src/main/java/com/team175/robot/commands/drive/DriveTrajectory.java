@@ -20,6 +20,8 @@ public final class DriveTrajectory extends CommandBase {
     public DriveTrajectory(Trajectory trajectory, Drive drive) {
         this.drive = drive;
         // Run RAMSETE control loop on Talon SRX
+        // NOTE: This is pretty finicky, but can be tuned with better VELOCITY_KP values. This is the ideal version
+        //       though since the calculations are processed on a separate controller.
         /*this.ramsete = new RamseteCommand(
                 trajectory,
                 drive::getPose,

@@ -11,6 +11,9 @@ import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConst
 
 import java.util.List;
 
+/**
+ * FIXME: This should work. Go back to other commits to see working versions of autonomous.
+ */
 public final class TrajectoryFactory {
 
     private static final TrajectoryConfig config = new TrajectoryConfig(Drive.MAX_VELOCITY, Drive.MAX_ACCELERATION)

@@ -102,6 +102,8 @@ public final class RobotContainer {
     private void configureDefaultCommands() {
         // Arcade Drive
         drive.setDefaultCommand(
+                // While the drive subsystem is not called by other subsystems, call the arcade drive method using the
+                // controller's throttle and turn. When it is called, set the motors to 0% power.
                 new RunCommand(
                         () -> {
                             double throttle = driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft);
@@ -116,6 +118,7 @@ public final class RobotContainer {
                                     driverController.getY(GenericHID.Hand.kRight)
                             );*/
 
+                            // Controller rumble
                             /*driverController.setRumble(GenericHID.RumbleType.kLeftRumble, Math.abs(throttle));
                             driverController.setRumble(GenericHID.RumbleType.kRightRumble, Math.abs(throttle));*/
                         },
@@ -178,17 +181,6 @@ public final class RobotContainer {
         // Align to target
         new XboxButton(operatorController, AdvancedXboxController.Trigger.LEFT)
                 .toggleWhenPressed(new LockOntoTarget(shooter, limelight));
-                /*.whenReleased(new SequentialCommandGroup(
-                        new InstantCommand(() -> {
-                            operatorController.setRumble(GenericHID.RumbleType.kLeftRumble, 1);
-                            operatorController.setRumble(GenericHID.RumbleType.kRightRumble, 1);
-                        }),
-                        new WaitCommand(1),
-                        new InstantCommand(() -> {
-                            operatorController.setRumble(GenericHID.RumbleType.kLeftRumble, 0);
-                            operatorController.setRumble(GenericHID.RumbleType.kRightRumble, 0);
-                        })
-                ));*/
         // Auto shoot
         new XboxButton(operatorController, AdvancedXboxController.Trigger.RIGHT)
                 // .whenPressed(new LogCommand("Pew pew"));
@@ -207,6 +199,7 @@ public final class RobotContainer {
                         () -> false,
                         shooter
                 ));
+        // TODO: Remove this and instead use a smart goal tracking system that turns to a rough pose of the goal from odometry
         // Turret Cardinals
         new XboxButton(operatorController, AdvancedXboxController.DPad.UP)
                 .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.NORTH));
@@ -318,6 +311,7 @@ public final class RobotContainer {
 
     public boolean checkRobotIntegrity() {
         logger.info("Starting robot health test...");
+        // FIXME: This kind of works, not really...
         return drive.checkIntegrity();
     }
 
@@ -330,6 +324,9 @@ public final class RobotContainer {
         return autoChooser.getSelected();
     }
 
+    /**
+     * Stupid code that uses the start button to "pause" the robot. Doesn't really work, just like this robot.
+     */
     public boolean isRobotPaused() {
         if (driverController.getStartButton()) {
             isRobotPaused = !isRobotPaused;

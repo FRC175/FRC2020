@@ -199,6 +199,12 @@ public final class Drive extends SubsystemBase {
         setVoltage(feedforward.calculate(wheelSpeeds.leftMetersPerSecond), feedforward.calculate(wheelSpeeds.rightMetersPerSecond));*/
     }
 
+    /**
+     * A smoother arcade drive with motion profiling (not tested).
+     *
+     * @param throttle The throttle from the controller
+     * @param turn The turn from the controller
+     */
     public void velocityArcadeDrive(double throttle, double turn) {
         // TODO: Change velocity for low gear and high gear
         if (isInHighGear()) {
