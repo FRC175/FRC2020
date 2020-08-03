@@ -1,6 +1,6 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2020.1.2"
+    id "edu.wpi.first.GradleRIO" version "2020.3.2"
 }
 
 sourceCompatibility = JavaVersion.VERSION_11
@@ -40,21 +40,29 @@ deploy {
 // Set this to true to enable desktop support.
 def includeDesktopSupport = false
 
+repositories {
+    maven { url 'https://jitpack.io' }
+}
 
 test {
     useJUnitPlatform()
 }
         
 dependencies {
+    compile group: 'org.slf4j', name:'slf4j-api', version: '1.7.30'
+    compile group: 'ch.qos.logback', name:'logback-classic', version: '1.2.3'
+    compile group: 'ch.qos.logback', name:'logback-core', version: '1.2.3'
+
     def junit5Version = '5.5.2'
     implementation wpi.deps.wpilib()
     nativeZip wpi.deps.wpilibJni(wpi.platforms.roborio)
     nativeDesktopZip wpi.deps.wpilibJni(wpi.platforms.desktop)
 
-
     implementation wpi.deps.vendor.java()
     nativeZip wpi.deps.vendor.jni(wpi.platforms.roborio)
     nativeDesktopZip wpi.deps.vendor.jni(wpi.platforms.desktop)
+
+    implementation "com.github.Oblarg.Oblog:lib:3.1.0"
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit5Version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit5Version"
@@ -69,6 +77,7 @@ dependencies {
 // in order to make them all available at runtime. Also adding the manifest so WPILib
 // knows where to look for our Robot Class.
 jar {
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
 }
