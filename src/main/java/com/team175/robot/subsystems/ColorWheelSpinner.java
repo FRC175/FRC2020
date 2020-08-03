@@ -7,6 +7,7 @@ import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorMatchResult;
 import com.revrobotics.ColorSensorV3;
 import com.team175.robot.models.MotionMagicGains;
+import com.team175.robot.utils.TalonSRXDiagnostics;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.util.Color;
@@ -58,6 +59,7 @@ public final class ColorWheelSpinner extends SubsystemBase {
     private void configureTalons() {
         spinner.configFactoryDefault();
         spinner.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+        spinner.setSensorPhase(true);
         spinner.setSelectedSensorPosition(0);
     }
 
@@ -154,13 +156,13 @@ public final class ColorWheelSpinner extends SubsystemBase {
         return color;
     }
 
-    @Log
+    // @Log
     public int getPosition() {
         return spinner.getSelectedSensorPosition();
     }
 
     public boolean hasSpunWheel() {
-        return spinner.getClosedLoopError() <= ALLOWED_POSITION_DEVIATION;
+        return Math.abs(COUNTS_TO_SPIN_WHEEL - getPosition()) <= ALLOWED_POSITION_DEVIATION;
     }
 
     @Override
@@ -169,7 +171,15 @@ public final class ColorWheelSpinner extends SubsystemBase {
 
     @Override
     public boolean checkIntegrity() {
-        return false;
+        TalonSRXDiagnostics test = new TalonSRXDiagnostics(spinner, "Spinner");
+
+        logger.info("Beginning integrity check for Color Wheel Spinner.");
+
+        boolean isGood = true;
+        isGood &= test.runIntegrityTest();
+        logger.info("{}", test.toString());
+
+        return isGood;
     }
 
 }

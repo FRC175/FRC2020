@@ -3,11 +3,10 @@ package com.team175.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import com.revrobotics.ControlType;
 import com.team175.robot.models.MotionMagicGains;
 import com.team175.robot.positions.TurretCardinal;
+import com.team175.robot.utils.SensorUnits;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Solenoid;
@@ -20,20 +19,23 @@ import io.github.oblarg.oblog.annotations.Log;
  */
 public final class Shooter extends SubsystemBase {
 
-    private TalonSRX turret, flywheelMaster, flywheelSlave;
-    private CANSparkMax hood;
-    private Solenoid ballGate;
+    private final TalonSRX turret, flywheelMaster, flywheelSlave;
+    private final Servo hood;
+    // private final CANSparkMax hood;
+    private final Solenoid ballGate;
     private final MotionMagicGains turretGains;
+    private final DigitalInput turretHomingSensor;
 
     private int turretSetpoint;
     private int flywheelSetpoint;
     private int hoodSetpoint;
+    private boolean got5Balls;
 
     private static final int PCM_PORT = 18;
     private static final int TURRET_PORT = 11;
     private static final int FLYWHEEL_MASTER_PORT = 13;
     private static final int FLYWHEEL_SLAVE_PORT = 12;
-    private static final int HOOD_PORT = 4;
+    private static final int HOOD_PORT = 0;
     private static final int BALL_GATE_CHANNEL = 6;
     private static final int TURRET_DEADBAND = 5;
     private static final int COUNTS_PER_REVOLUTION = 4096; // TODO: Fix
@@ -45,11 +47,12 @@ public final class Shooter extends SubsystemBase {
         flywheelMaster = new TalonSRX(FLYWHEEL_MASTER_PORT);
         flywheelSlave = new TalonSRX(FLYWHEEL_SLAVE_PORT);
         configureTalons();
-        // hood = new Servo(HOOD_PORT);
-        hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        hood = new Servo(HOOD_PORT);
+        // hood = new CANSparkMax(HOOD_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         configureSparkMax();
-        // ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
+        ballGate = new Solenoid(PCM_PORT, BALL_GATE_CHANNEL);
         turretGains = new MotionMagicGains(10.1, 0, 20.2, 0, 0, 0, turret);
+        turretHomingSensor = new DigitalInput(2);
     }
 
     public static Shooter getInstance() {
@@ -65,6 +68,7 @@ public final class Shooter extends SubsystemBase {
         turret.configFactoryDefault();
         turret.setInverted(false);
         turret.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+        turret.configSelectedFeedbackSensor(FeedbackDevice.Analog, 1, 10);
         // turret.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute);
         turret.setSensorPhase(true);
         // TODO: Comment out in real robot
@@ -96,7 +100,7 @@ public final class Shooter extends SubsystemBase {
     }
 
     public void setTurretHeading(Rotation2d heading) {
-        setTurretPosition(degreesToCounts(heading));
+        setTurretPosition(SensorUnits.degreesToCounts(heading, COUNTS_PER_REVOLUTION));
     }
 
     @Config
@@ -112,36 +116,34 @@ public final class Shooter extends SubsystemBase {
         flywheelMaster.set(ControlMode.PercentOutput, demand);
     }
 
+    public void setFlywheelVelocity(int velocity) {
+        flywheelMaster.set(ControlMode.Velocity, velocity);
+    }
+
+    public void setFlywheelRPM(double rpm) {
+        flywheelMaster.set(ControlMode.Velocity, SensorUnits.rpmToCountsPerDecisecond(rpm, COUNTS_PER_REVOLUTION));
+    }
+
     public void setHoodOpenLoop(double demand) {
         hood.set(demand);
     }
 
+    /**
+     * Sets the hood position.
+     *
+     * @param position A number between 0 and 1 that represents the position of the servo.
+     */
     public void setHoodPosition(double position) {
-        hood.getPIDController().setReference(position, ControlType.kPosition);
+        hood.set(position);
+    }
+
+    public void setHoodHeading(Rotation2d heading) {
+        hood.setAngle(heading.getDegrees());
     }
 
     public void setBallGate(boolean allowBalls) {
         logger.info("{} ball gate", allowBalls ? "Retracting" : "Deploying");
         ballGate.set(allowBalls);
-    }
-
-    private int degreesToCounts(Rotation2d heading) {
-        return (int) (heading.getDegrees() * (COUNTS_PER_REVOLUTION / 360.0));
-    }
-
-    private Rotation2d countsToDegrees(double position) {
-        return Rotation2d.fromDegrees(position * (360.0 / COUNTS_PER_REVOLUTION));
-    }
-
-    /**
-     * @return Velocity in sensor units per 100 ms
-     */
-    private int rpmToTalonVelocity(int rpm) {
-        return rpm;
-    }
-
-    private int talonVelocityToRPM(int velocity) {
-        return velocity;
     }
 
     private int getTurretSetpoint() {
@@ -160,7 +162,12 @@ public final class Shooter extends SubsystemBase {
 
     @Log(methodName = "getDegrees")
     public Rotation2d getTurretHeading() {
-        return countsToDegrees(getTurretPosition());
+        return SensorUnits.countsToDegrees(getTurretPosition(), COUNTS_PER_REVOLUTION);
+    }
+
+    @Log
+    public int getAnalogSensor() {
+        return turret.getSelectedSensorPosition(1);
     }
 
     /*@Log
@@ -168,10 +175,25 @@ public final class Shooter extends SubsystemBase {
         return flywheelMaster.getMotorOutputPercent();
     }
 
+    public int getFlywheelVelocity() {
+        return flywheelMaster.getSelectedSensorVelocity();
+    }
+
+    public double getFlywheelRPM() {
+        return SensorUnits.talonVelocityToRPM(getFlywheelVelocity(), COUNTS_PER_REVOLUTION);
+    }
+
     @Log
     public boolean getBallGate() {
         return ballGate.get();
     }*/
+
+    @Override
+    public void periodic() {
+        /*if (turretHomingSensor.get()) {
+            turret.setSelectedSensorPosition(0);
+        }*/
+    }
 
     @Override
     public void resetSensors() {

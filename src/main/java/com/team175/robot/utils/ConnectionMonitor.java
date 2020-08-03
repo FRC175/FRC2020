@@ -39,7 +39,7 @@ public class ConnectionMonitor {
                 } else {
                     /*mLED.setLEDColor(Constants.kCommLossColor);
                     mLED.setMessage("sos", true);*/
-                    Limelight.getInstance().turnOnLED();
+                    // Limelight.getInstance().turnOnLED();
                 }
 
                 if (justReconnected.update(hasConnection)) {
@@ -96,12 +96,12 @@ public class ConnectionMonitor {
         /*mLED.setLEDColor(Constants.kDefaultColor);
         mLED.configureBlink(LEDController.kDefaultBlinkCount, LEDController.kDefaultBlinkDuration);
         mLED.setRequestedState(LEDController.LEDState.BLINK);*/
-        Limelight.getInstance().turnOffLED();
+        // Limelight.getInstance().turnOffLED();
     }
 
     private void justDisconnected() {
         // Reconfigure blink if we are just disconnected.
-        Limelight.getInstance().turnOnLED();
+        // Limelight.getInstance().turnOnLED();
         // mLED.configureBlink(LEDController.kDefaultBlinkCount, LEDController.kDefaultBlinkDuration * 2.0);
     }
 

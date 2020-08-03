@@ -1,15 +1,22 @@
 package com.team175.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.revrobotics.CANPIDController;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Solenoid;
 import io.github.oblarg.oblog.annotations.Log;
 
 public final class Climber extends SubsystemBase {
 
     private final CANSparkMax winchMaster, winchSlave;
+    private final CANPIDController winchPIDController;
     private final Solenoid deployer;
+    private final DigitalInput digital;
+    private final AnalogInput analog;
 
     private static final int PCM_PORT = 18;
     private static final int WINCH_MASTER_PORT = 10;
@@ -21,8 +28,11 @@ public final class Climber extends SubsystemBase {
     private Climber() {
         winchMaster = new CANSparkMax(WINCH_MASTER_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         winchSlave = new CANSparkMax(WINCH_SLAVE_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        winchPIDController = winchMaster.getPIDController();
         configureSparkMaxes();
         deployer = new Solenoid(PCM_PORT, DEPLOYER_CHANNEL);
+        digital = new DigitalInput(1);
+        analog = new AnalogInput(1);
     }
 
     public static Climber getInstance() {
@@ -59,6 +69,16 @@ public final class Climber extends SubsystemBase {
     // @Log
     public boolean isDeployed() {
         return deployer.get();
+    }
+
+    @Log
+    public boolean digitalInputValue() {
+        return digital.get();
+    }
+
+    @Log
+    public double analogInputValue() {
+        return analog.getVoltage();
     }
 
     @Override

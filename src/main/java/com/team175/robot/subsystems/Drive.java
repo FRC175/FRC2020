@@ -1,17 +1,26 @@
 package com.team175.robot.subsystems;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.InvertType;
+import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.team175.robot.Robot;
+import com.team175.robot.models.MotionMagicGains;
+import com.team175.robot.utils.SensorUnits;
 import com.team175.robot.utils.TalonSRXDiagnostics;
 import com.team175.robot.utils.DriveHelper;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
+import edu.wpi.first.wpilibj.util.Units;
+import io.github.oblarg.oblog.annotations.Config;
 import io.github.oblarg.oblog.annotations.Log;
 
 /**
@@ -28,7 +37,10 @@ public final class Drive extends SubsystemBase {
     private final DoubleSolenoid shifter;
     private final DriveHelper driveHelper;
     private final DifferentialDriveOdometry odometer;
+    private final MotionMagicGains leftGains;
+    private final MotionMagicGains rightGains;
 
+    // Ports
     private static final int PCM_PORT = 18;
     private static final int LEFT_MASTER_PORT = 2;
     private static final int LEFT_SLAVE_PORT = 1;
@@ -36,6 +48,34 @@ public final class Drive extends SubsystemBase {
     private static final int RIGHT_SLAVE_PORT = 14;
     private static final int SHIFTER_FORWARD_CHANNEL = 0;
     private static final int SHIFTER_REVERSE_CHANNEL = 1;
+    // Closed Loop Constants
+    private static final int COUNTS_PER_REVOLUTION = 4096;
+    private static final double WHEEL_RADIUS = Units.inchesToMeters(2); // TODO: Fix
+    public static final double TRACK_WIDTH = Units.feetToMeters(1.76); // TODO: Fix
+    public static final double MAX_VELOCITY = Units.feetToMeters(6);
+    public static final double MAX_ACCELERATION = Units.feetToMeters(3);
+    public static final double MAX_ANGULAR_VELOCITY = Units.degreesToRadians(360);
+    public static final double MAX_VOLTAGE = 10;
+    public static final double KS = 1.41;
+    public static final double KV = 2.55;
+    public static final double KA = 0.207;
+    private static final double VELOCITY_KP = 1.75; // 3.21
+    private static final double VELOCITY_KD = 0;
+    private static final double POSITION_KP = 0.743;
+    private static final double POSITION_KD = 0.326;
+
+    public static final SimpleMotorFeedforward FEEDFORWARD = new SimpleMotorFeedforward(KS, KV, KA);
+    public static final DifferentialDriveKinematics KINEMATICS = new DifferentialDriveKinematics(TRACK_WIDTH);
+    public static final DifferentialDriveVoltageConstraint VOLTAGE_CONSTRAINT = new DifferentialDriveVoltageConstraint(
+            FEEDFORWARD, KINEMATICS, MAX_VOLTAGE
+    );
+
+    private static final double POSITION_CONSTANT = 1.5;
+
+    // Max rate of change for speed per second
+    public static final double THROTTLE_RATE_LIMITER = 2.5;
+    // Max rate of change for rotation per second
+    public static final double ROTATE_RATE_LIMITER = 3.0;
 
     /**
      * The single instance of {@link Drive} used to implement the "singleton" design pattern. A description of the
@@ -53,11 +93,14 @@ public final class Drive extends SubsystemBase {
         rightMaster = new TalonSRX(RIGHT_MASTER_PORT);
         rightSlave = new TalonSRX(RIGHT_SLAVE_PORT);
         configureTalons();
-        gyro = new PigeonIMU(rightSlave);
+        gyro = new PigeonIMU(new TalonSRX(11));
+        // gyro = new PigeonIMU(leftSlave);
         configurePigeon();
         shifter = new DoubleSolenoid(PCM_PORT, SHIFTER_FORWARD_CHANNEL, SHIFTER_REVERSE_CHANNEL);
         driveHelper = new DriveHelper(leftMaster, rightMaster);
         odometer = new DifferentialDriveOdometry(getHeading());
+        leftGains = new MotionMagicGains(VELOCITY_KP, 0, VELOCITY_KD, 0, 0, 0, leftMaster);
+        rightGains = new MotionMagicGains(VELOCITY_KP, 0, VELOCITY_KD, 0, 0, 0, rightMaster);
     }
 
     /**
@@ -85,16 +128,17 @@ public final class Drive extends SubsystemBase {
      */
     private void configureTalons() {
         leftMaster.configFactoryDefault();
-        leftMaster.setInverted(false);
+        leftMaster.setInverted(true);
         leftMaster.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
         leftMaster.setSelectedSensorPosition(0);
+        leftMaster.setSensorPhase(true);
 
         leftSlave.configFactoryDefault();
         leftSlave.follow(leftMaster);
         leftSlave.setInverted(InvertType.FollowMaster);
 
         rightMaster.configFactoryDefault();
-        rightMaster.setInverted(true);
+        rightMaster.setInverted(false);
         rightMaster.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
         rightMaster.setSelectedSensorPosition(0);
 
@@ -122,6 +166,20 @@ public final class Drive extends SubsystemBase {
         rightMaster.set(ControlMode.PercentOutput, rightDemand);
     }
 
+    public void setVoltage(double leftVoltage, double rightVoltage) {
+        // Log code from WPI_TalonSRX
+        if (leftMaster.isVoltageCompensationEnabled()) {
+            com.ctre.phoenix.Logger.log(ErrorCode.DoubleVoltageCompensatingWPI, "LeftMaster " + ": setVoltage ");
+        }
+        if (rightMaster.isVoltageCompensationEnabled()) {
+            com.ctre.phoenix.Logger.log(ErrorCode.DoubleVoltageCompensatingWPI, "LeftMaster " + ": setVoltage ");
+        }
+        setOpenLoop(
+                leftVoltage / RobotController.getBatteryVoltage(),
+                rightVoltage / RobotController.getBatteryVoltage()
+        );
+    }
+
     /**
      * Controls the drive motor using arcade controls - with a throttle and a turn.
      *
@@ -130,6 +188,33 @@ public final class Drive extends SubsystemBase {
      */
     public void arcadeDrive(double throttle, double turn) {
         driveHelper.arcadeDrive(throttle, turn);
+
+        /*if (isInHighGear()) {
+            throttle *= MAX_VELOCITY;
+        } else {
+            throttle *= MAX_VELOCITY;
+        }
+        turn *= MAX_ANGULAR_VELOCITY;
+        DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(new ChassisSpeeds(throttle, 0.0, turn));
+        setVoltage(feedforward.calculate(wheelSpeeds.leftMetersPerSecond), feedforward.calculate(wheelSpeeds.rightMetersPerSecond));*/
+    }
+
+    /**
+     * A smoother arcade drive with motion profiling (not tested).
+     *
+     * @param throttle The throttle from the controller
+     * @param turn The turn from the controller
+     */
+    public void velocityArcadeDrive(double throttle, double turn) {
+        // TODO: Change velocity for low gear and high gear
+        if (isInHighGear()) {
+            throttle *= MAX_VELOCITY;
+        } else {
+            throttle *= MAX_VELOCITY;
+        }
+        turn *= MAX_ANGULAR_VELOCITY;
+        DifferentialDriveWheelSpeeds wheelSpeeds = KINEMATICS.toWheelSpeeds(new ChassisSpeeds(throttle, 0.0, turn));
+        setMetersPerSecond(wheelSpeeds.leftMetersPerSecond, wheelSpeeds.rightMetersPerSecond);
     }
 
     /**
@@ -145,6 +230,60 @@ public final class Drive extends SubsystemBase {
         driveHelper.cheesyDrive(throttle, turn, isQuickTurn, true);
     }
 
+    public void setPosition(int position) {
+        leftMaster.set(ControlMode.Position, position);
+        rightMaster.set(ControlMode.Position, position);
+    }
+
+    public void setRotations(double rotations) {
+        setPosition(SensorUnits.rotationsToCounts(rotations, COUNTS_PER_REVOLUTION));
+    }
+
+    public void setVelocity(int leftVelocity, int rightVelocity) {
+        leftMaster.set(ControlMode.Velocity, leftVelocity);
+        rightMaster.set(ControlMode.Velocity, rightVelocity);
+    }
+
+    public void setMetersPerSecond(double leftVelocity, double rightVelocity) {
+        double leftFeedforward = FEEDFORWARD.calculate(leftVelocity) / 12;
+        double rightFeedforward = FEEDFORWARD.calculate(rightVelocity) / 12;
+        leftVelocity = SensorUnits.rpmToCountsPerDecisecond(metersPerSecondToRPM(leftVelocity), COUNTS_PER_REVOLUTION);
+        rightVelocity = SensorUnits.rpmToCountsPerDecisecond(metersPerSecondToRPM(rightVelocity), COUNTS_PER_REVOLUTION);
+
+        leftMaster.set(
+                ControlMode.Velocity,
+                leftVelocity,
+                DemandType.ArbitraryFeedForward,
+                leftFeedforward
+        );
+        rightMaster.set(
+                ControlMode.Velocity,
+                rightVelocity,
+                DemandType.ArbitraryFeedForward,
+                rightFeedforward
+        );
+    }
+
+    @Config
+    public void setLeftVelocityKp(double kP) {
+        leftMaster.config_kP(0, kP);
+    }
+
+    @Config
+    public void setRightVelocityKp(double kP) {
+        rightMaster.config_kP(0, kP);
+    }
+
+    public void setCoastMode() {
+        leftMaster.setNeutralMode(NeutralMode.Coast);
+        rightMaster.setNeutralMode(NeutralMode.Coast);
+    }
+
+    public void setBrakeMode() {
+        leftMaster.setNeutralMode(NeutralMode.Brake);
+        rightMaster.setNeutralMode(NeutralMode.Brake);
+    }
+
     /**
      * Shifts the robot between the two gears - high gear and low gear.
      *
@@ -152,6 +291,30 @@ public final class Drive extends SubsystemBase {
      */
     public void shift(boolean shift) {
         shifter.set(shift ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+    }
+
+    public void resetOdometer(Pose2d pose) {
+        leftMaster.setSelectedSensorPosition(0);
+        rightMaster.setSelectedSensorPosition(0);
+        odometer.resetPosition(pose, getHeading());
+    }
+
+    public void resetOdometer() {
+        resetOdometer(new Pose2d());
+    }
+
+    private double rotationsToMeters(double rotations) {
+        // wheelRotations * circumference * positionConstant
+        return rotations * 2 * Math.PI * WHEEL_RADIUS * POSITION_CONSTANT;
+    }
+
+    private double rpmToMetersPerSecond(double rpm) {
+        // rpm -> rps -> m/s
+        return (rpm / 60) * 2 * Math.PI * WHEEL_RADIUS;
+    }
+
+    private double metersPerSecondToRPM(double velocity) {
+        return (velocity * 60) / (2 * Math.PI * WHEEL_RADIUS);
     }
 
     /**
@@ -176,8 +339,28 @@ public final class Drive extends SubsystemBase {
     }
 
     @Log
+    public double getLeftRotations() {
+        return SensorUnits.countsToRotations(getLeftPosition(), COUNTS_PER_REVOLUTION);
+    }
+
+    @Log
+    public double getLeftMeters() {
+        return rotationsToMeters(getLeftRotations());
+    }
+
+    @Log
     public int getLeftVelocity() {
         return leftMaster.getSelectedSensorVelocity();
+    }
+
+    @Log
+    public double getLeftRPM() {
+        return SensorUnits.countsPer100MsToRPM(getLeftVelocity(), COUNTS_PER_REVOLUTION);
+    }
+
+    @Log
+    public double getLeftMetersPerSecond() {
+        return rpmToMetersPerSecond(getLeftRPM());
     }
 
     @Log
@@ -196,8 +379,32 @@ public final class Drive extends SubsystemBase {
     }
 
     @Log
+    public double getRightRotations() {
+        return SensorUnits.countsToRotations(getRightPosition(), COUNTS_PER_REVOLUTION);
+    }
+
+    @Log
+    public double getRightMeters() {
+        return rotationsToMeters(getRightRotations());
+    }
+
+    @Log
     public int getRightVelocity() {
         return rightMaster.getSelectedSensorVelocity();
+    }
+
+    @Log
+    public double getRightRPM() {
+        return SensorUnits.countsPer100MsToRPM(getRightVelocity(), COUNTS_PER_REVOLUTION);
+    }
+
+    @Log
+    public double getRightMetersPerSecond() {
+        return rpmToMetersPerSecond(getRightRPM());
+    }
+
+    public DifferentialDriveWheelSpeeds getWheelSpeeds() {
+        return new DifferentialDriveWheelSpeeds(getLeftMetersPerSecond(), getRightMetersPerSecond());
     }
 
     /**
@@ -236,8 +443,7 @@ public final class Drive extends SubsystemBase {
      */
     @Override
     public void periodic() {
-        // TODO: Fix and add encoders
-        odometer.update(getHeading(), 0, 0);
+        odometer.update(getHeading(), getLeftMeters(), getRightMeters());
     }
 
     /**
@@ -245,8 +451,9 @@ public final class Drive extends SubsystemBase {
      */
     @Override
     public void resetSensors() {
+        gyro.setYaw(0);
         gyro.setFusedHeading(0);
-        odometer.resetPosition(new Pose2d(), getHeading());
+        resetOdometer();
     }
 
     /**

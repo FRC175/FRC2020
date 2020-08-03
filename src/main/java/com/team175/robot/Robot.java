@@ -23,14 +23,19 @@ public final class Robot extends TimedRobot {
     private RobotContainer robotContainer;
     private Command autoCommand;
 
+    // FIXME: Logging can create latency between robot and driver station, so enable once only important variables are logged.
+    // NOTE: This is for logging to the shuffleboard, not the console or log file.
+    private static final boolean IS_LOGGING_ENABLED = false;
+
     /**
      * This method is run when the robot is first started up and should be used for any initialization code.
      */
     @Override
     public void robotInit() {
-        // Instantiate the RobotContainer. This will perform all our button bindings, and put our autonomous chooser on
-        // the dashboard.
         robotContainer = RobotContainer.getInstance();
+        if (IS_LOGGING_ENABLED) {
+            Logger.configureLoggingAndConfig(robotContainer, false);
+        }
     }
 
     /**
@@ -47,7 +52,9 @@ public final class Robot extends TimedRobot {
         // and running subsystem periodic() methods.  This must be called from the robot's periodic
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
-        Logger.updateEntries();
+        if (IS_LOGGING_ENABLED) {
+            Logger.updateEntries();
+        }
     }
 
     /**
@@ -55,6 +62,7 @@ public final class Robot extends TimedRobot {
      */
     @Override
     public void disabledInit() {
+        Drive.getInstance().resetSensors();
     }
 
     @Override
@@ -66,8 +74,11 @@ public final class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
-        // autoCommand = robotContainer.getAutoMode();
+        // Configure subsystems for autonomous
+        robotContainer.configureAutoInit();
 
+        // Initialize autonomous mode from shuffleboard input
+        autoCommand = robotContainer.getAutoMode();
         if (autoCommand != null) {
             autoCommand.schedule();
         }
@@ -82,6 +93,9 @@ public final class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
+        // Configure subsystems for teleop
+        robotContainer.configureTeleopInit();
+
         // Make sure that the autonomous stops running when teleop starts running
         if (autoCommand != null) {
             autoCommand.cancel();

@@ -1,6 +1,11 @@
 package com.team175.robot;
 
-import com.team175.robot.commands.*;
+import com.team175.robot.commands.auto.modes.EightBallAllianceTrenchFar;
+import com.team175.robot.commands.auto.modes.EightBallAllianceTrenchMiddle;
+import com.team175.robot.commands.auto.modes.EightBallAllianceTrenchNear;
+import com.team175.robot.commands.colorwheelspinner.SpinColorWheelToColor;
+import com.team175.robot.commands.shooter.LockOntoTarget;
+import com.team175.robot.commands.shooter.RotateTurretToFieldOrientedCardinal;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
 import com.team175.robot.subsystems.Intake;
@@ -13,13 +18,14 @@ import com.team175.robot.subsystems.Limelight;
 import com.team175.robot.subsystems.Shooter;
 import com.team175.robot.utils.ConnectionMonitor;
 import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.SlewRateLimiter;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.shuffleboard.EventImportance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.*;
+import io.github.oblarg.oblog.annotations.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,17 +45,24 @@ public final class RobotContainer {
     private final Climber climber;
     private final LED led;
     private final AdvancedXboxController driverController, operatorController;
+    @Config(name = "Auto Mode Chooser")
     private final SendableChooser<Command> autoChooser;
     private final Logger logger;
     private final ConnectionMonitor monitor;
+    private final SlewRateLimiter throttleLimiter, turnLimiter;
 
-    private Command autoMode;
+    private boolean isRobotPaused;
 
     private static RobotContainer instance;
 
     private static final int DRIVER_CONTROLLER_PORT = 0;
     private static final int OPERATOR_CONTROLLER_PORT = 1;
     private static final double CONTROLLER_DEADBAND = 0.1;
+
+    // Max rate of change for speed per second
+    private static final double THROTTLE_RATE_LIMITER = 2.5;
+    // Max rate of change for rotation per second
+    private static final double TURN_RATE_LIMITER = 3.0;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -67,6 +80,10 @@ public final class RobotContainer {
         autoChooser = new SendableChooser<>();
         logger = LoggerFactory.getLogger(getClass().getSimpleName());
         monitor = ConnectionMonitor.getInstance();
+        throttleLimiter = new SlewRateLimiter(THROTTLE_RATE_LIMITER);
+        turnLimiter = new SlewRateLimiter(TURN_RATE_LIMITER);
+
+        isRobotPaused = false;
 
         configureDefaultCommands();
         configureButtonBindings();
@@ -85,11 +102,26 @@ public final class RobotContainer {
     private void configureDefaultCommands() {
         // Arcade Drive
         drive.setDefaultCommand(
+                // While the drive subsystem is not called by other subsystems, call the arcade drive method using the
+                // controller's throttle and turn. When it is called, set the motors to 0% power.
                 new RunCommand(
-                        () -> drive.arcadeDrive(
-                                driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft),
-                                driverController.getX(GenericHID.Hand.kLeft)
-                        ),
+                        () -> {
+                            double throttle = driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft);
+                            drive.arcadeDrive(
+                                    throttle,
+                                    driverController.getX(GenericHID.Hand.kLeft)
+                            );
+
+                            // Tank Drive
+                            /*drive.setOpenLoop(
+                                    driverController.getY(GenericHID.Hand.kLeft),
+                                    driverController.getY(GenericHID.Hand.kRight)
+                            );*/
+
+                            // Controller rumble
+                            /*driverController.setRumble(GenericHID.RumbleType.kLeftRumble, Math.abs(throttle));
+                            driverController.setRumble(GenericHID.RumbleType.kRightRumble, Math.abs(throttle));*/
+                        },
                         drive
                 ).andThen(() -> drive.arcadeDrive(0, 0), drive)
         );
@@ -109,7 +141,7 @@ public final class RobotContainer {
         // ----------------------------------------------------------------------------------------------------
         // Intake control
         new XboxButton(driverController, AdvancedXboxController.Button.A)
-                .whileHeld(() -> intake.setRollerOpenLoop(0.1), intake)
+                .whileHeld(() -> intake.setRollerOpenLoop(1), intake)
                 .whenPressed(() -> intake.setIndexerOpenLoop(1), intake)
                 .whenReleased(() -> intake.setRollerOpenLoop(0), intake);
         // Toggle indexer
@@ -151,8 +183,23 @@ public final class RobotContainer {
                 .toggleWhenPressed(new LockOntoTarget(shooter, limelight));
         // Auto shoot
         new XboxButton(operatorController, AdvancedXboxController.Trigger.RIGHT)
-                .whenPressed(new LogCommand("Pew pew"));
-                // .toggleWhenPressed();
+                // .whenPressed(new LogCommand("Pew pew"));
+                .toggleWhenPressed(new FunctionalCommand(
+                        () -> {
+                            shooter.setBallGate(true);
+                            shooter.setFlywheelOpenLoop(0.5);
+                            shooter.setHoodHeading(Rotation2d.fromDegrees(90));
+                        },
+                        () -> {},
+                        (interrupted) -> {
+                            shooter.setBallGate(false);
+                            shooter.setFlywheelOpenLoop(0);
+                            shooter.setHoodHeading(Rotation2d.fromDegrees(0));
+                        },
+                        () -> false,
+                        shooter
+                ));
+        // TODO: Remove this and instead use a smart goal tracking system that turns to a rough pose of the goal from odometry
         // Turret Cardinals
         new XboxButton(operatorController, AdvancedXboxController.DPad.UP)
                 .whenPressed(new RotateTurretToFieldOrientedCardinal(drive, shooter, TurretCardinal.NORTH));
@@ -225,14 +272,13 @@ public final class RobotContainer {
 
     private void configureAutoChooser() {
         autoChooser.setDefaultOption("Do Nothing", null);
-        // Add more auto modes here
-        // autoChooser.addOption();
-        SmartDashboard.putData("Auto Mode Chooser", autoChooser);
+        /*// Add more auto modes here
+        autoChooser.addOption("Eight Ball Alliance Trench Near", new EightBallAllianceTrenchNear(drive, shooter, limelight, intake));
+        autoChooser.addOption("Eight Ball Alliance Trench Middle", new EightBallAllianceTrenchMiddle(drive));
+        autoChooser.addOption("Eight Ball Alliance Trench Far", new EightBallAllianceTrenchFar(drive));*/
     }
 
     private void configureLogging() {
-        io.github.oblarg.oblog.Logger.configureLoggingAndConfig(this, false);
-
         CommandScheduler.getInstance().onCommandInitialize(
                 command -> {
                     Shuffleboard.addEventMarker("Command initialized.", command.getName(), EventImportance.kNormal);
@@ -253,8 +299,19 @@ public final class RobotContainer {
         );
     }
 
+    public void configureAutoInit() {
+        drive.setBrakeMode();
+        // drive.shift(true);
+    }
+
+    public void configureTeleopInit() {
+        drive.setBrakeMode();
+        // drive.shift(false);
+    }
+
     public boolean checkRobotIntegrity() {
         logger.info("Starting robot health test...");
+        // FIXME: This kind of works, not really...
         return drive.checkIntegrity();
     }
 
@@ -264,7 +321,18 @@ public final class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutoMode() {
-        return autoMode = autoChooser.getSelected();
+        return autoChooser.getSelected();
+    }
+
+    /**
+     * Stupid code that uses the start button to "pause" the robot. Doesn't really work, just like this robot.
+     */
+    public boolean isRobotPaused() {
+        if (driverController.getStartButton()) {
+            isRobotPaused = !isRobotPaused;
+        }
+
+        return isRobotPaused;
     }
 
 }
