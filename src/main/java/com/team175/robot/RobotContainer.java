@@ -8,6 +8,7 @@ import com.team175.robot.commands.shooter.LockOntoTarget;
 import com.team175.robot.commands.shooter.RotateTurretToFieldOrientedCardinal;
 import com.team175.robot.models.AdvancedXboxController;
 import com.team175.robot.models.XboxButton;
+import com.team175.robot.models.AdvancedXboxController.Button;
 import com.team175.robot.subsystems.Intake;
 import com.team175.robot.subsystems.Climber;
 import com.team175.robot.subsystems.ColorWheelSpinner;
@@ -106,10 +107,13 @@ public final class RobotContainer {
                 // controller's throttle and turn. When it is called, set the motors to 0% power.
                 new RunCommand(
                         () -> {
-                            double throttle = driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft);
+                            //double throttle = driverController.getTriggerAxis(GenericHID.Hand.kRight) - driverController.getTriggerAxis(GenericHID.Hand.kLeft);
+                            double throttle = -1 * driverController.getY(GenericHID.Hand.kLeft); //-1 to drive in correct direction
+                            double turn = -1 * driverController.getX(GenericHID.Hand.kRight); //-1 to turn in correct direction
                             drive.arcadeDrive(
                                     throttle,
-                                    driverController.getX(GenericHID.Hand.kLeft)
+                                    turn
+                                    //driverController.getX(GenericHID.Hand.kLeft)
                             );
 
                             // Tank Drive
@@ -140,10 +144,12 @@ public final class RobotContainer {
         // INTAKE
         // ----------------------------------------------------------------------------------------------------
         // Intake control
-        new XboxButton(driverController, AdvancedXboxController.Button.A)
-                .whileHeld(() -> intake.setRollerOpenLoop(1), intake)
-                .whenPressed(() -> intake.setIndexerOpenLoop(1), intake)
-                .whenReleased(() -> intake.setRollerOpenLoop(0), intake);
+        
+        new XboxButton(operatorController, AdvancedXboxController.Button.B)
+                .whileHeld(() -> intake.setRollerOpenLoop(0.75), intake)
+                //.whenPressed(() -> intake.setIndexerOpenLoop(1), intake)
+                .whenReleased(() -> intake.setRollerOpenLoop(0), intake); 
+        
         // Toggle indexer
         new XboxButton(driverController, AdvancedXboxController.Button.Y)
                 .whenPressed(new ConditionalCommand(
@@ -151,6 +157,14 @@ public final class RobotContainer {
                         new InstantCommand(() -> intake.setIndexerOpenLoop(0), intake),
                         () -> !intake.isIndexerMoving()
                 ));
+
+        // Deploy Intake
+        new XboxButton(operatorController, AdvancedXboxController.Button.A)
+                .whenPressed(new ConditionalCommand(
+                        new InstantCommand(() -> intake.deploy(), intake), 
+                        new InstantCommand(() -> intake.retract(), intake), 
+                        () -> !intake.isDeployed())); 
+
         // Reverse intake subsystem
         new XboxButton(driverController, AdvancedXboxController.Button.B)
                 .whileHeld(
@@ -214,12 +228,13 @@ public final class RobotContainer {
         // COLOR WHEEL SPINNER
         // ----------------------------------------------------------------------------------------------------
         // Deploy/retract color wheel spinner
+        /*
         new XboxButton(operatorController, AdvancedXboxController.Button.A)
                 .whenPressed(new ConditionalCommand(
                         new InstantCommand(colorWheelSpinner::deploy, colorWheelSpinner),
                         new InstantCommand(colorWheelSpinner::retract, colorWheelSpinner),
                         () -> !colorWheelSpinner.isDeployed()
-                ));
+                )); */
         // Rotate wheel three times
         new XboxButton(operatorController, AdvancedXboxController.Button.X)
                 .toggleWhenPressed(new FunctionalCommand(
@@ -230,8 +245,9 @@ public final class RobotContainer {
                         colorWheelSpinner
                 ));
         // Spin to color
+        /*
         new XboxButton(operatorController, AdvancedXboxController.Button.B)
-                .toggleWhenPressed(new SpinColorWheelToColor(colorWheelSpinner));
+                .toggleWhenPressed(new SpinColorWheelToColor(colorWheelSpinner));*/
 
         // ----------------------------------------------------------------------------------------------------
         // CLIMBER
